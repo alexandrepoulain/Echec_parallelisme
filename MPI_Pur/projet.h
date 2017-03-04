@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include <err.h>
+#include <mpi.h>
 
 /* 2017-02-23 : version 1.0 */
 
@@ -65,6 +66,15 @@ typedef struct {
   int pv_length;
   int PV[MAX_DEPTH];
 } result_t;
+
+/********************************************
+ * Fonctions temps
+ *******************************************/
+double my_gettimeofday(){
+  struct timeval tmp_time;
+  my_gettimeofday(&tmp_time, NULL);
+  return tmp_time.tv_sec + (tmp_time.tv_sec * 1.0e-6L);
+}
 
 /********************************************
  * Fonctions auxiliaires
