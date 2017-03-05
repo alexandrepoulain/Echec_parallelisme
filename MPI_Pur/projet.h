@@ -4,7 +4,8 @@
 #include <string.h>
 #include <assert.h>
 #include <err.h>
-
+#include <mpi.h>
+#include <time.h>
 /* 2017-02-23 : version 1.0 */
 
 /******************************************************** 
@@ -29,6 +30,10 @@
 #define MAX(x,y) ((x> y) ?x:y)
 #define MIN(x,y) ((x<y) ?x:y)
 
+//tag mpi comunication
+#define TAG_DATA 1
+#define TAG_END 2
+ 
 /*** structures de données ***/
 typedef int square_t;
 typedef int move_t;
