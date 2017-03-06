@@ -4,10 +4,17 @@
 
 unsigned long long int node_searched = 0;
 
+double my_gettimeofday(){
+  struct timeval tmp_time;
+  gettimeofday(&tmp_time, NULL);
+  return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
+}
+
 void evaluate(tree_t * T, result_t *result, int rang)
 {
         //Maitre
         if(rang==0){
+        MPI_Status status;
         
                 node_searched++;
   
@@ -41,7 +48,6 @@ void evaluate(tree_t * T, result_t *result, int rang)
 		
 		if (ALPHA_BETA_PRUNING)
 		  sort_moves(T, n_moves, moves);
-		
 		//nb de process
 		int p;
 		MPI_Comm_size(MPI_COMM_WORLD, &p);
@@ -58,30 +64,31 @@ void evaluate(tree_t * T, result_t *result, int rang)
 				//envoie de T
 				int Tr[534];
 				for(int j=0;j<128;j++){
-					Tr[j]=(int)child->pieces[j];
+					Tr[j]=(int)child.pieces[j];
 				}
 				for(int j=128;j<256;j++){
-					Tr[j]=(int)child->colors[j];
-				}Tr[257]=child->side; 	
-				Tr[258]=child->depth;
-				Tr[259]=child->height;
-				Tr[260]=child->alpha;
-				Tr[270]=child->beta;
-				Tr[271]=child->alpha_start;
-				Tr[272]=child->king[0];
-				Tr[273]=child->king[1];
-				Tr[274]=child->pawns[0];
-				Tr[275]=child->pawns[1];					
+					Tr[j]=(int)child.colors[j];
+				}Tr[257]=child.side; 	
+				Tr[258]=child.depth;
+				Tr[259]=child.height;
+				Tr[260]=child.alpha;
+				Tr[270]=child.beta;
+				Tr[271]=child.alpha_start;
+				Tr[272]=child.king[0];
+				Tr[273]=child.king[1];
+				Tr[274]=child.pawns[0];
+				Tr[275]=child.pawns[1];					
 				for(int j=276;j<404;j++){
-					Tr[j]=(int)child->attack[j];
+					Tr[j]=(int)child.attack[j];
 				}
-				Tr[404]=child->suggested_move;
-				Tr[405]=(int)child->suggested_move;
+				Tr[404]=child.suggested_move;
+				Tr[405]=(int)child.suggested_move;
 				for(int j=406;j<534;j++){
-					Tr[j]=child->history[j];
+					Tr[j]=child.history[j];
 				}
-				Tr[534]=n_moves-cptEnvoie;			
-				MPI_Send(Tr, 535, MPI_INT, i+1, TAG_REQ, MPI_COMM_WORLD); 
+				Tr[534]=n_moves-cptEnvoie;		
+				printf("Maitre envoie\n");
+				MPI_Send(&Tr, 535, MPI_INT, i+1, TAG_REQ, MPI_COMM_WORLD); 
 				cptEnvoie--;
 			}
 		}
@@ -92,11 +99,11 @@ void evaluate(tree_t * T, result_t *result, int rang)
 			result_t child_result;
 			int R[MAX_DEPTH + 4];
 			MPI_Recv(R, MAX_DEPTH + 4, MPI_INT, status.MPI_SOURCE, TAG_DATA, MPI_COMM_WORLD, &status);
-			child_result->score=R[0];
-			child_result->best_move=R[1];
-			child_result->pv_length=R[2];
+			child_result.score=R[0];
+			child_result.best_move=R[1];
+			child_result.pv_length=R[2];
 			for(int i = 3;i<MAX_DEPTH;i++){
-				child_result->PV[i-3]=R[i];
+				child_result.PV[i-3]=R[i];
 			}
 			int indiceMove = R[MAX_DEPTH + 3];
 			cptRecue++;
@@ -123,52 +130,53 @@ void evaluate(tree_t * T, result_t *result, int rang)
 			//envoie de T
 			int Tr[534];
 			for(int j=0;j<128;j++){
-				Tr[j]=(int)child->pieces[j];
+				Tr[j]=(int)child.pieces[j];
 			}
 			for(int j=128;j<256;j++){
-				Tr[j]=(int)child->colors[j];
-			}Tr[257]=child->side; 	
-			Tr[258]=child->depth;
-			Tr[259]=child->height;
-			Tr[260]=child->alpha;
-			Tr[270]=child->beta;
-			Tr[271]=child->alpha_start;
-			Tr[272]=child->king[0];
-			Tr[273]=child->king[1];
-			Tr[274]=child->pawns[0];
-			Tr[275]=child->pawns[1];					
+				Tr[j]=(int)child.colors[j];
+			}Tr[257]=child.side; 	
+			Tr[258]=child.depth;
+			Tr[259]=child.height;
+			Tr[260]=child.alpha;
+			Tr[270]=child.beta;
+			Tr[271]=child.alpha_start;
+			Tr[272]=child.king[0];
+			Tr[273]=child.king[1];
+			Tr[274]=child.pawns[0];
+			Tr[275]=child.pawns[1];					
 			for(int j=276;j<404;j++){
-				Tr[j]=(int)child->attack[j];
+				Tr[j]=(int)child.attack[j];
 			}
-			Tr[404]=child->suggested_move;
-			Tr[405]=(int)child->suggested_move;
+			Tr[404]=child.suggested_move;
+			Tr[405]=(int)child.suggested_move;
 			for(int j=406;j<534;j++){
-				Tr[j]=child->history[j];
+				Tr[j]=child.history[j];
 			}			
 			Tr[534]=n_moves-cptEnvoie;			
-			MPI_Send(Tr, 535, MPI_INT, i+1, TAG_REQ, MPI_COMM_WORLD);  
+			MPI_Send(&Tr, 535, MPI_INT, status.MPI_SOURCE, TAG_REQ, MPI_COMM_WORLD);  
 			cptEnvoie--;
 			
 		}
-		
+		printf("maitre init fait\n");
 		//reception des derniers travaux
 		while(cptRecue < n_moves){
 			//reception de result
 			result_t child_result;
 			int R[MAX_DEPTH + 4];
 			MPI_Recv(R, MAX_DEPTH + 4, MPI_INT, status.MPI_SOURCE, TAG_DATA, MPI_COMM_WORLD, &status);
-			child_result->score=R[0];
-			child_result->best_move=R[1];
-			child_result->pv_length=R[2];
+			printf("recu travail fait de %d\n",status.MPI_SOURCE);
+			child_result.score=R[0];
+			child_result.best_move=R[1];
+			child_result.pv_length=R[2];
 			for(int i = 3;i<MAX_DEPTH;i++){
-				child_result->PV[i-3]=R[i];
+				child_result.PV[i-3]=R[i];
 			}
 			int indiceMove = R[MAX_DEPTH + 3];		
 			cptRecue++;
 			
 			//envoie fin
-			int R[MAX_DEPTH + 3];
-			MPI_Send(R, MAX_DEPTH + 3, MPI_INT, status.MPI_SOURCE, TAG_END, MPI_COMM_WORLD);
+			int Tr[534];;
+			MPI_Send(Tr, 534, MPI_INT, status.MPI_SOURCE, TAG_END, MPI_COMM_WORLD);
 			
 			int child_score = -child_result.score;
 
@@ -234,7 +242,7 @@ void evaluate(tree_t * T, result_t *result, int rang)
 		        
 		        play_move(T, moves[i], &child);
 		        
-		        evaluate(&child, &child_result);
+		        evaluate(&child, &child_result,rang);
 		                 
 		        int child_score = -child_result.score;
 
@@ -316,7 +324,6 @@ int main(int argc, char **argv)
 		
 		parse_FEN(argv[1], &root);
 		print_position(&root);
-		
 		decide(&root, &result);
 
 		printf("\nDécision de la position: ");
@@ -342,52 +349,55 @@ int main(int argc, char **argv)
 	else{
 		//tant qui il y a du travail
 		while(tag != TAG_END){
+			printf("#%d coucou\n",rang);
 			//receive job
-			int Tr[534];
-			MPI_Recv(Tr, 534, MPI_INT, idmaster, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			int Tr[535];
+			MPI_Recv(Tr, 535, MPI_INT, idmaster, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			printf("#%d recu\n",rang);
 			//effectue le job
 			tag = status.MPI_TAG;
 			if(tag == TAG_REQ){
-				tree_t * T;		
+				tree_t T;		
 				//remplir T
 				for(int i=0;i<128;i++){
-					T->pieces[i]=(char)Tr[i];
+					T.pieces[i]=(char)Tr[i];
 				}
 				for(int i=128;i<256;i++){
-					T->colors[i]=(char)Tr[i];
-				}T->side=Tr[257]; 	
-				T->depth=Tr[258];
-				T->height=Tr[259];
-				T->alpha=Tr[260];
-				T->beta=Tr[270];
-				T->alpha_start=Tr[271];
-				T->king[0]=Tr[272];
-				T->king[1]=Tr[273];
-				T->pawns[0]=Tr[274];
-				T->pawns[1]=Tr[275];					
+					T.colors[i]=(char)Tr[i];
+				}T.side=Tr[257]; 	
+				T.depth=Tr[258];
+				T.height=Tr[259];
+				T.alpha=Tr[260];
+				T.beta=Tr[270];
+				T.alpha_start=Tr[271];
+				T.king[0]=Tr[272];
+				T.king[1]=Tr[273];
+				T.pawns[0]=Tr[274];
+				T.pawns[1]=Tr[275];					
 				for(int i=276;i<404;i++){
-					T->attack[i]=(char)Tr[i];
+					T.attack[i]=(char)Tr[i];
 				}
-				T->suggested_move=Tr[404];
-				T->suggested_move=(unsigned long long int)Tr[405];
+				T.suggested_move=Tr[404];
+				T.suggested_move=(unsigned long long int)Tr[405];
 				for(int i=406;i<534;i++){
-					T->history[i]=(unsigned long long int)Tr[i];
+					T.history[i]=(unsigned long long int)Tr[i];
 				}
-				result_t* result;
-				
+				result_t result;
+				printf("travail fait de %d\n",rang);
 				//job
-				evaluate(T, result, rang);
+				evaluate(&T, &result, rang);
 				
 				//envoie resultat result
 				int R[MAX_DEPTH + 4];
-				R[0]=result->score;
-				R[1]=result->best_move;
-				R[2]=result->pv_length;
+				R[0]=result.score;
+				R[1]=result.best_move;
+				R[2]=result.pv_length;
 				for(int i = 3;i<MAX_DEPTH;i++){
-					R[i]=result->PV[i-3];
+					R[i]=result.PV[i-3];
 				}
 				R[MAX_DEPTH + 3]=Tr[534];
-				MPI_Send(R, MAX_DEPTH + 4, MPI_INT, idmaster, TAG_DATA, MPI_COMM_WORLD);
+				printf("travail fait de %d\n",rang);
+				MPI_Send(&R, MAX_DEPTH + 4, MPI_INT, idmaster, TAG_DATA, MPI_COMM_WORLD);
 			}
 		}
 		/* fin du chronometrage */
