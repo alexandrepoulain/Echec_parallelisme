@@ -1,9 +1,20 @@
 #include "projet.h"
 
 /* 2017-02-23 : version 1.0 */
+/* Version MPI_Pur: maître-esclaves 
+  Le maître envoi le premier niveau de l'arbre aux esclaves
+  Problèmes: - le maître ne calcule pas
+              - Une fois fini un esclave envoie son résultat et attend (il devrait aider)
+*/
 #define TAG_END 5
 
 unsigned long long int node_searched = 0;
+
+double my_gettimeofday(){
+  struct timeval tmp_time;
+  gettimeofday(&tmp_time, NULL);
+  return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
+}
 
 void evaluate(tree_t * T, result_t *result)
 {
@@ -73,6 +84,7 @@ if (TRANSPOSITION_TABLE)
 /* Fonction evaluate root qui sera appeler seulement par le processus root */
 void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status)
 {
+
   /* Le result */
   const int nitems2=4;
   int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -153,17 +165,19 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   int job_sent = 0;
   int compt_sent = 0;
   int indice[NP];
-  for (int i = 0; i < n_moves ; i++) {
+  for (int i = 1; i < n_moves ; i++) {
     // SALE si on est arrivé au max du nombre de processus on arrête 
-    if( i > NP)
+    if( i >= NP)
       break;
-
     // Send au processus i du tableau T 
-    MPI_Send(&T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
+    MPI_Send(T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
+    //printf("#ROOT envoi à #%d\n", i);
     // stocker l'indice
     indice[i] = i;
-    // Send au processus i du move 
+    // Send au processus i du move
+    //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
     MPI_Send(&moves[i], 1, MPI_INT, i, tag, MPI_COMM_WORLD);
+    //printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
     job_sent++;
   }
   // variable qui va nous permettre de savoir quand arrêter d'envoyer des jobs 
@@ -191,7 +205,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     if(compt_sent < n_moves){
       // Send un job au processus qui vient d'envoyer son résultat 
       // On renvoie T 
-      MPI_Send(&T, 1, mpi_tree_t, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
+      MPI_Send(T, 1, mpi_tree_t, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
       // on envoie un nouveau move 
       MPI_Send(&moves[compt_sent], 1, MPI_INT, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
       // on stocke le move pour l'indice
@@ -209,7 +223,6 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status)
 		T->height = 0;
 		T->alpha_start = T->alpha = -MAX_SCORE - 1;
 		T->beta = MAX_SCORE + 1;
-
     printf("=====================================\n");
     evaluate_root(T, result, tag, NP, status);
 
@@ -226,7 +239,16 @@ int main(int argc, char **argv)
 	
 
   /* Init MPI */
+  int NP, rang, tag = 10;
   MPI_Init(&argc,&argv);
+  // nombre de processus
+  
+  MPI_Comm_size(MPI_COMM_WORLD, &NP);
+  // Le rang des processus
+  MPI_Comm_rank(MPI_COMM_WORLD, &rang);
+  // le status
+  MPI_Status status;
+  
 
   /* On va creer toutes les structures pour l'envoi d'information par MPI
       Le premier pour le plateau de jeu
@@ -273,23 +295,13 @@ int main(int argc, char **argv)
   MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
   MPI_Type_commit(&mpi_result_t);
 
-  // nombre de processus
-  int NP;
-  MPI_Comm_size(MPI_COMM_WORLD, &NP);
-
-  // Le rang des processus
-  int rang;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rang);
-
-  // le status
-  MPI_Status status;
-  // le tag 
-  int tag = 10;
+  
 
 
   /* Si je suis le processus 0 je rentre dans la fonction decide */
   if(rang == 0){
-
+    int i; 
+    double debut, fin;
     tree_t T;
     result_t result;
     if (argc < 2) {
@@ -306,8 +318,18 @@ int main(int argc, char **argv)
     }
 
     parse_FEN(argv[1], &T);
-    print_position(&T);
+    //print_position(&T);
+    debut = my_gettimeofday();
+
     decide(&T, &result, tag, NP, status);
+    for(i=1; i<NP; i++){
+      //printf("#ROOT envoi finalize %d\n", i);
+      MPI_Send(&T, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
+    }
+    fin = my_gettimeofday();  
+    fprintf( stderr, "Temps total de calcul : %g sec\n", 
+     fin - debut);
+    fprintf( stdout, "%g\n", fin - debut);
     printf("\nDécision de la position: ");
     switch(result.score * (2*T.side - 1)) {
       case MAX_SCORE: printf("blanc gagne\n"); break;
@@ -333,24 +355,33 @@ int main(int argc, char **argv)
       /* receive T */
       tree_t root_proc; 
       move_t move;
-      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, tag, MPI_COMM_WORLD, &status);
-      if(tag == TAG_END)
+      //printf("#%d En attente\n", rang);
+      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      tag = status.MPI_TAG;
+      //printf("#%d tag = %d\n", rang, tag);
+      if(tag == TAG_END){
+        //printf("#%d finalize\n", rang);
         break;
+      }
       /* receive le move */
       MPI_Recv(&move, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &status);
+      //printf("#%d reçu job\n", rang);
+      //print_position(&root_proc);
       /* Do le premier job */
       tree_t child;
       result_t child_result;
       /* On play le move attribué et on rentre dans la fonction evaluate
       */
+      //printf("#%d move = %d\n",rang,  move);
       play_move(&root_proc, move, &child);
-
+      //printf("#%d rentre récursivement\n", rang);
       evaluate(&child, &child_result);
       int child_score = -child_result.score;
       root_proc.alpha = MAX(root_proc.alpha, child_score);
       /* dès qu'on est arrivé là on a fini le job */
       /* on envoie le result */
       MPI_Send(&child_result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
+      //printf("#%d fini envoi\n", rang);
     }
     MPI_Finalize();
   }
