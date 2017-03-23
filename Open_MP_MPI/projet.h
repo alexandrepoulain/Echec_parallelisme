@@ -5,11 +5,9 @@
 #include <assert.h>
 #include <err.h>
 #include <mpi.h>
-
-#include <unistd.h>
+#include <time.h> /* chronometrage */
 #include <math.h>
 #include <sys/time.h>
-#include <time.h> /* chronometrage */
 
 /* 2017-02-23 : version 1.0 */
 
