@@ -240,40 +240,6 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status)
 int main(int argc, char **argv)
 {  
 
-	tree_t root;
-	result_t result;
-
-	if (argc < 2) {
-		printf("usage: %s \"4k//4K/4P w\" (or any position in FEN)\n", argv[0]);
-		exit(1);
-	}
-
-	if (ALPHA_BETA_PRUNING)
-		printf("Alpha-beta pruning ENABLED\n");
-
-	if (TRANSPOSITION_TABLE) {
-		printf("Transposition table ENABLED\n");
-		init_tt();
-	}
-
-	parse_FEN(argv[1], &root);
-	print_position(&root);
-
-	decide(&root, &result);
-
-	printf("\nDécision de la position: ");
-	switch(result.score * (2*root.side - 1)) {
-		case MAX_SCORE: printf("blanc gagne\n"); break;
-		case CERTAIN_DRAW: printf("partie nulle\n"); break;
-		case -MAX_SCORE: printf("noir gagne\n"); break;
-		default: printf("BUG\n");
-	}
-
-	printf("Node searched: %llu\n", node_searched);
-
-	if (TRANSPOSITION_TABLE)
-		free_tt();
-	return 0;
 
 	
 
