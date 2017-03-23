@@ -162,13 +162,15 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   // évalue récursivement les positions accessibles à partir d'ici 
   
   #pragma omp parallel sections{
-
+    /*** IMPORTANT **/
+    /* on les définis ici car ils vont être partgé entre les deux treads */
+    tree_t child;
+    result_t child_result;
+    // j correspond à l'indice où en est le processus de calcul
+    int j;
   // Initialisation du job tant qu'on peut on envoi un job à n processus
   //  Chaque processus doit commencer avec un job 
     #pragma omp section{
-      int job_sent = 0;
-      int compt_sent = 0;
-      int indice[NP];
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
       int reste = n_moves;
@@ -200,7 +202,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           move_t send_moves[nb_elem];
           reste--;
           // on remplit le tableau de moves à envoyer
-          for (j=0; j<nb_elem; j++){
+          for (int j=0; j<nb_elem; j++){
             send_moves[j]=moves[nb_regions+j];
           }
           // on envoie au thread de comm du processus correspondant
@@ -216,9 +218,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       /*** SECTION calcul première partie ***/
       #pragma omp section{
         // En gros sur chaque move on envoie evaluate 
-        for (int i = 0; i < n_moves; i++) {
-          tree_t child;
-          result_t child_result;
+        for (j = 0; j < nb_elem; j++) {
 
           play_move(T, moves[i], &child);
 
@@ -232,11 +232,12 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
            result->pv_length = child_result.pv_length + 1;
            for(int j = 0; j < child_result.pv_length; j++)
             result->PV[j+1] = child_result.PV[j];
-          result->PV[0] = moves[i];
+           result->PV[0] = moves[i];
         }
 
-
+        T->alpha = MAX(T->alpha, child_score);
       }
+      /*** Première partie du calcul fini ***/
 
 
     }
