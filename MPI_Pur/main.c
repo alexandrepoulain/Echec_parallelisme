@@ -51,7 +51,8 @@ void evaluate(tree_t * T, result_t *result)
   if (ALPHA_BETA_PRUNING)
     sort_moves(T, n_moves, moves);
 
-        /* évalue récursivement les positions accessibles à partir d'ici */
+  /* évalue récursivement les positions accessibles à partir d'ici */
+  
   for (int i = 0; i < n_moves; i++) {
     tree_t child;
     result_t child_result;
@@ -176,7 +177,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     indice[i] = i;
     // Send au processus i du move
     //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-    MPI_Send(&moves[i], 1, MPI_INT, i, tag, MPI_COMM_WORLD);
+    MPI_Send(&moves[i-1], 1, MPI_INT, i, tag, MPI_COMM_WORLD);
     //printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
     job_sent++;
   }

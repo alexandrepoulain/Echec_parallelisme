@@ -160,58 +160,85 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     sort_moves(T, n_moves, moves);
 
   // évalue récursivement les positions accessibles à partir d'ici 
+  
+  #pragma omp parallel sections{
+
   // Initialisation du job tant qu'on peut on envoi un job à n processus
   //  Chaque processus doit commencer avec un job 
-  int job_sent = 0;
-  int compt_sent = 0;
-  int indice[NP];
-  for (int i = 1; i < n_moves ; i++) {
-    // SALE si on est arrivé au max du nombre de processus on arrête 
-    if( i >= NP)
-      break;
-    // Send au processus i du tableau T 
-    MPI_Send(T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
-    //printf("#ROOT envoi à #%d\n", i);
-    // stocker l'indice
-    indice[i] = i;
-    // Send au processus i du move
-    //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-    MPI_Send(&moves[i], 1, MPI_INT, i, tag, MPI_COMM_WORLD);
-    //printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
-    job_sent++;
-  }
-  // variable qui va nous permettre de savoir quand arrêter d'envoyer des jobs 
-  compt_sent = job_sent; 
-  while(job_sent > 0){
-    // Receive d'un job par le processus k 
-    //  On stocke la reception dans child_result
-    //  On compare avec la valeur déjà présente
-    result_t child_result;
-    MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
-    job_sent--;
-    int child_score = -child_result.score;
-    if (child_score > result->score){
-      result->score = child_score;
-      // on recupere le move correspondant en utilisant le tableau indice
-      result->best_move = moves[indice[status.MPI_SOURCE]];
-      result->pv_length = child_result.pv_length + 1;
-      for(int j = 0; j < child_result.pv_length; j++)
-        result->PV[j+1] = child_result.PV[j];
-      result->PV[0] = moves[indice[status.MPI_SOURCE]];
-    }
-    T->alpha = MAX(T->alpha, child_score);
-    // Si il reste du job à faire on en envoie au processus
-    //    sinon on fait rien 
-    if(compt_sent < n_moves){
-      // Send un job au processus qui vient d'envoyer son résultat 
-      // On renvoie T 
-      MPI_Send(T, 1, mpi_tree_t, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
-      // on envoie un nouveau move 
-      MPI_Send(&moves[compt_sent], 1, MPI_INT, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
-      // on stocke le move pour l'indice
-      indice[status.MPI_SOURCE] = compt_sent;
-      compt_sent++;
-      job_sent++; 
+    #pragma omp section{
+      int job_sent = 0;
+      int compt_sent = 0;
+      int indice[NP];
+      // On commence à envoyer à partir de l'indice 1 
+      // ( l'indice 0 c'est le maitre qui s'en occupe)
+      int reste = n_moves;
+      int nb_elem, nb_regions, index = 0;
+      while (reste == n_moves){
+        reste = n_moves%(NP-index);
+        nb_regions = NP-index;
+        nb_elem = n_moves/(NP-index);
+      }
+      for (int i = 1; i < nb_regions ; i++) {
+        // SALE si on est arrivé au max du nombre de processus on arrête 
+        // tant que le reste eest pas égal à 0 on rajoute un élément au message
+        if (reste!=0){
+          move_t send_moves[nb_elem+1];
+          reste--;
+          // on remplit le tableau de moves à envoyer
+          for (j=0; j<nb_elem+1; j++){
+            send_moves[j]=moves[nb_regions+j];
+          }
+          // on envoie au thread de comm du processus correspondant
+          MPI_Send(T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
+          //printf("#ROOT envoi à #%d\n", i);
+          // Send au processus i du move
+          //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
+          MPI_Send(&send_moves, nb_elem+1, MPI_INT, i, tag, MPI_COMM_WORLD);
+        }
+        // le reste est égal à 0
+        else{
+          move_t send_moves[nb_elem];
+          reste--;
+          // on remplit le tableau de moves à envoyer
+          for (j=0; j<nb_elem; j++){
+            send_moves[j]=moves[nb_regions+j];
+          }
+          // on envoie au thread de comm du processus correspondant
+          MPI_Send(T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
+          //printf("#ROOT envoi à #%d\n", i);
+          // Send au processus i du move
+          //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
+          MPI_Send(&send_moves, nb_elem, MPI_INT, i, tag, MPI_COMM_WORLD);
+        }
+      }
+      /*** Première partie de l'initialisation terminée ***/
+      /* chaques processus a du job à faire */
+      /*** SECTION calcul première partie ***/
+      #pragma omp section{
+        // En gros sur chaque move on envoie evaluate 
+        for (int i = 0; i < n_moves; i++) {
+          tree_t child;
+          result_t child_result;
+
+          play_move(T, moves[i], &child);
+
+          evaluate(&child, &child_result);
+
+          int child_score = -child_result.score;
+
+          if (child_score > result->score) {
+           result->score = child_score;
+           result->best_move = moves[i];
+           result->pv_length = child_result.pv_length + 1;
+           for(int j = 0; j < child_result.pv_length; j++)
+            result->PV[j+1] = child_result.PV[j];
+          result->PV[0] = moves[i];
+        }
+
+
+      }
+
+
     }
   }
 }
@@ -320,6 +347,8 @@ int main(int argc, char **argv)
     parse_FEN(argv[1], &T);
     //print_position(&T);
     debut = my_gettimeofday();
+    // nowait pour pas qu'il attend l'autre
+    // un thread sert 
 
     decide(&T, &result, tag, NP, status);
     for(i=1; i<NP; i++){
