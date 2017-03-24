@@ -676,7 +676,7 @@ int main(int argc, char **argv)
                 {
                   if(indice >= indice_fin-1)
                     break;
-                  printf("#%d test milieu calcul après evaluate\n", rang);
+                  printf("#%d test calcul avant evaluate %d\n", rang, move[indice]);
                   play_move(&root_proc, move[indice], &child);
                   
                   evaluate(&child, &child_result);
