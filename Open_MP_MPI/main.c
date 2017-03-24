@@ -554,7 +554,7 @@ int main(int argc, char **argv)
       {
       	#pragma omp section
       	{	
-        	int demandeur, envoyeur;
+        	int demandeur, envoyeur, ne_pas_rentrer = 0;;
         	while(fini)
         	{
         		// Probe pour connaître la nature du receive (NON BLOQUANT)
@@ -564,8 +564,9 @@ int main(int argc, char **argv)
             tag = status.MPI_TAG;
         		printf("#%d Je viens de recevoir un signal\n",rang);
   	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
-        		if(tag == TAG_INIT && over == 0)
+        		if(tag == TAG_INIT && ne_pas_rentrer == 0)
         		{
+              ne_pas_rentrer = 1;
 		          printf("#%d je reçois de ROOT \n",rang);
         			// Rceive tree
         			MPI_Recv(&root_proc, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
