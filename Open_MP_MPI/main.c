@@ -535,7 +535,7 @@ int main(int argc, char **argv)
         	{
         		// Probe pour connaître la nature du receive
         		MPI_Probe(source, MPI_ANY_SOURCE, MPI_COMM_WORLD, &status);
-            tag = source.MPI_TAG;
+            tag = status.MPI_TAG;
         		printf("#%d Je viens de recevoir un signal\n",rang);
   	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
         		if(tag == TAG_INIT)
