@@ -696,7 +696,7 @@ int main(int argc, char **argv)
                   }
                 }
                 printf("#%d Fini le calcul\n", rang);
-                #pragma omp crtical{
+                #pragma omp critical{
                   over = 1;
                   go = 0;
                 }
