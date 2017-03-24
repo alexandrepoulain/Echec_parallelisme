@@ -167,14 +167,14 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     tree_t child;
     result_t child_result;
     // j correspond à l'indice où en est le processus de calcul
-    int j;
+    int j, over = 0;
   // Initialisation du job tant qu'on peut on envoi un job à n processus
   //  Chaque processus doit commencer avec un job 
     #pragma omp section{
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
       int reste = n_moves;
-      int nb_elem, nb_regions, index = 0;
+      int nb_elem, nb_regions, indice_move, index = 0;
       while (reste == n_moves){
         reste = n_moves%(NP-index);
         nb_regions = NP-index;
@@ -212,8 +212,28 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves, nb_elem, MPI_INT, i, tag, MPI_COMM_WORLD);
         }
+        /*** Première partie de l'initialisation terminée ***/
+        /*** Attente que le processus de calcul est fini ***/
+        while(1){
+          // receive d'un result
+          MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
+          MPI_Recv(&indice_move,1,MPI_INT,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status)
+          job_sent--;
+          int child_score = -child_result.score;
+          if (child_score > result->score){
+            result->score = child_score;
+            // on recupere le move correspondant en utilisant le tableau indice
+            result->best_move = moves[indice[status.MPI_SOURCE]];
+            result->pv_length = child_result.pv_length + 1;
+            for(int j = 0; j < child_result.pv_length; j++)
+              result->PV[j+1] = child_result.PV[j];
+            result->PV[0] = moves[indice[status.MPI_SOURCE]];
+          }
+          T->alpha = MAX(T->alpha, child_score);
+
+        }
       }
-      /*** Première partie de l'initialisation terminée ***/
+      
       /* chaques processus a du job à faire */
       /*** SECTION calcul première partie ***/
       #pragma omp section{
@@ -235,10 +255,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
            result->PV[0] = moves[i];
         }
 
-        T->alpha = MAX(T->alpha, child_score);
       }
       /*** Première partie du calcul fini ***/
-
+      over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
 
     }
   }
