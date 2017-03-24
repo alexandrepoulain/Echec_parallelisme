@@ -400,12 +400,12 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, in
 
 int main(int argc, char **argv)
 {  
-	 printf("here is the main\n");
+	
 
   /* Init MPI */
   int NP, rang, tag = 10, *provided;
   MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, provided);
-
+   printf("here is the main\n");
   if(*provided < MPI_THREAD_MULTIPLE){
     printf("Error level provided less than required\n");
   }
