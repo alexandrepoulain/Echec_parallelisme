@@ -637,6 +637,7 @@ int main(int argc, char **argv)
             while(fini)
             {
               if(go == 1){
+                printf("#%d commence le calcul \n", rang);
                 tree_t child;
                 result_t child_result;
                 for(indice = 0; indice < nb_elem; indice++)
