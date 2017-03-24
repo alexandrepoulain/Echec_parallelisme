@@ -168,22 +168,23 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
   // évalue récursivement les positions accessibles à partir d'ici 
   
+  /*** IMPORTANT **/
+  /* on les définis ici car ils vont être partgé entre les deux treads */
+  tree_t child;
+  result_t child_result;
+  // On alloue la mémoire nécessaire à la demande 
+  // Ici on fixe la taille à 3 moves
+  move_t new_move;
+  tree_t new_T, new_child;
+  result_t new_child_result, new_result;
+  // j correspond à l'indice où en est le processus de calcul
+  int over = 0, new_over=0, termine_premiere_partie = 0, indice_calcul, indice_fin, nb_elem, nb_elem_demande;
+  int fini = 1;
+  // Initialisation du job tant qu'on peut on envoi un job à n processus
+  //  Chaque processus doit commencer avec un job
   #pragma omp parallel sections
   {
-    /*** IMPORTANT **/
-    /* on les définis ici car ils vont être partgé entre les deux treads */
-    tree_t child;
-    result_t child_result;
-    // On alloue la mémoire nécessaire à la demande 
-    // Ici on fixe la taille à 3 moves
-    move_t new_move;
-    tree_t new_T, new_child;
-    result_t new_child_result, new_result;
-    // j correspond à l'indice où en est le processus de calcul
-    int over = 0, new_over=0, termine_premiere_partie = 0, indice_calcul, indice_fin, nb_elem, nb_elem_demande;
-    int fini = 1;
-    // Initialisation du job tant qu'on peut on envoi un job à n processus
-    //  Chaque processus doit commencer avec un job 
+     
     #pragma omp section
     {
       // On commence à envoyer à partir de l'indice 1 
@@ -511,16 +512,16 @@ int main(int argc, char **argv)
     Dès que je l'ai fini je me signale au maître "Pret pour un nouveau job"
   */
   else{
+    /*** PARTIE PARTAGE ***/
+    tree_t root_proc; 
+    move_t* move;
+    int fini=1, source, go = 0, over, attente;
+    int count, indice, nb_elem, indice_fin;
+    result_t result;
 
     #pragma omp parallel sections
     {
-      /*** PARTIE PARTAGE ***/
-      tree_t root_proc; 
-      move_t* move;
-      int fini=1, source, go = 0, over, attente;
-      int count, indice, nb_elem, indice_fin;
-      result_t result;
-
+      
       /*** THREAD COMM ***/
       #pragma omp section
       {
