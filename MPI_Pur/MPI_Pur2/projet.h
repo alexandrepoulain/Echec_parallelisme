@@ -5,12 +5,8 @@
 #include <assert.h>
 #include <err.h>
 #include <mpi.h>
-
-#include <unistd.h>
-#include <math.h>
+#include <time.h>
 #include <sys/time.h>
-#include <time.h> /* chronometrage */
-
 /* 2017-02-23 : version 1.0 */
 
 /******************************************************** 
@@ -34,6 +30,11 @@
 
 #define MAX(x,y) ((x> y) ?x:y)
 #define MIN(x,y) ((x<y) ?x:y)
+
+//tag mpi comunication
+#define TAG_DATA 1
+#define TAG_REQ 2
+#define TAG_END 3
 
 /*** structures de données ***/
 typedef int square_t;
@@ -71,11 +72,6 @@ typedef struct {
   int pv_length;
   int PV[MAX_DEPTH];
 } result_t;
-
-/********************************************
- * Fonctions temps
- *******************************************/
-
 
 /********************************************
  * Fonctions auxiliaires

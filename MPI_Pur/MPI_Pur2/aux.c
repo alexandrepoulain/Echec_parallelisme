@@ -605,7 +605,6 @@ void play_move(tree_t *T, move_t move, tree_t *child) {
   child->alpha_start = child->alpha = -T->beta;
   child->beta = -T->alpha;
   child->suggested_move = BAD_MOVE;
-  
   child->side = 1 - T->side;
   for (int sq = 0; sq < 128; sq++) {
     child->pieces[sq] = T->pieces[sq];
@@ -618,7 +617,6 @@ void play_move(tree_t *T, move_t move, tree_t *child) {
   child->pieces[to] = child->pieces[from];
   child->colors[to] = child->colors[from];
   child->colors[from] = child->pieces[from] = -1;
-  
   child->pawns[WHITE] = T->pawns[WHITE];
   child->pawns[BLACK] = T->pawns[BLACK];
   child->king[WHITE] = T->king[WHITE];
@@ -628,7 +626,6 @@ void play_move(tree_t *T, move_t move, tree_t *child) {
     child->pawns[T->colors[to]]--;
   if (T->pieces[from] == KING)
     child->king[T->colors[from]] = to;
-    
   child->hash = T->hash ^ zobrist_side;
   child->hash ^= zobrist[from][T->pieces[from]][T->colors[from]];
   child->hash ^= zobrist[to][T->pieces[from]][T->colors[from]];

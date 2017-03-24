@@ -29,8 +29,8 @@ void evaluate(tree_t * T, result_t *result)
   if (test_draw_or_victory(T, result))
     return;
 
-        if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
-  return;
+  if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
+    return;
 
   compute_attack_squares(T);
 
@@ -52,31 +52,60 @@ void evaluate(tree_t * T, result_t *result)
     sort_moves(T, n_moves, moves);
 
   /* évalue récursivement les positions accessibles à partir d'ici */
-  
-  for (int i = 0; i < n_moves; i++) {
-    tree_t child;
-    result_t child_result;
+  if(T->height == 0){
+    #pragma omp parallel for schedule(runtime)
+    for (int i = 0; i < n_moves; i++) {
 
-    play_move(T, moves[i], &child);
+      tree_t child;
+      result_t child_result;
 
-    evaluate(&child, &child_result);
+      play_move(T, moves[i], &child);
 
-    int child_score = -child_result.score;
+      evaluate(&child, &child_result);
 
-    if (child_score > result->score) {
-     result->score = child_score;
-     result->best_move = moves[i];
-     result->pv_length = child_result.pv_length + 1;
-     for(int j = 0; j < child_result.pv_length; j++)
-      result->PV[j+1] = child_result.PV[j];
-    result->PV[0] = moves[i];
+      int child_score = -child_result.score;
+
+      if (child_score > result->score) {
+       result->score = child_score;
+       result->best_move = moves[i];
+       result->pv_length = child_result.pv_length + 1;
+       for(int j = 0; j < child_result.pv_length; j++)
+        result->PV[j+1] = child_result.PV[j];
+      result->PV[0] = moves[i];
+    }
+
+    //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+    //  break;    
+
+    T->alpha = MAX(T->alpha, child_score);
   }
+}
+else{
+  for (int i = 0; i < n_moves; i++) {
 
-  if (ALPHA_BETA_PRUNING && child_score >= T->beta)
-    break;    
+      tree_t child;
+      result_t child_result;
 
-  T->alpha = MAX(T->alpha, child_score);
+      play_move(T, moves[i], &child);
 
+      evaluate(&child, &child_result);
+
+      int child_score = -child_result.score;
+
+      if (child_score > result->score) {
+       result->score = child_score;
+       result->best_move = moves[i];
+       result->pv_length = child_result.pv_length + 1;
+       for(int j = 0; j < child_result.pv_length; j++)
+        result->PV[j+1] = child_result.PV[j];
+      result->PV[0] = moves[i];
+    }
+
+    //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+    //  break;    
+
+    T->alpha = MAX(T->alpha, child_score);
+  }
 }
 
 if (TRANSPOSITION_TABLE)

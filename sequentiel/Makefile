@@ -13,4 +13,7 @@ decide: main.o aux.o
 
 clean:
 	rm -f *.o decide
+	
+run:
+	./decide "4k//4K//4P w"
 

@@ -46,18 +46,21 @@ void evaluate(tree_t * T, result_t *result)
     sort_moves(T, n_moves, moves);
 
   /* évalue récursivement les positions accessibles à partir d'ici */
-  if(T->height == 0){
-    #pragma omp parallel for schedule(runtime)
+
     for (int i = 0; i < n_moves; i++) {
 
-      tree_t child;
+    tree_t child;
       result_t child_result;
+	if(T->depth-T->height>9){
+		
+		#pragma omp task shared(child_result) untied
+		{
+  
 
       play_move(T, moves[i], &child);
-
-      evaluate(&child, &child_result);
-
-      int child_score = -child_result.score;
+		printf("TACHE CREEE n%d m%d\n",child.height,i);
+		evaluate(&child, &child_result);
+		      int child_score = -child_result.score;
 
       if (child_score > result->score) {
        result->score = child_score;
@@ -72,19 +75,14 @@ void evaluate(tree_t * T, result_t *result)
     //  break;    
 
     T->alpha = MAX(T->alpha, child_score);
-  }
-}
-else{
-  for (int i = 0; i < n_moves; i++) {
+		}
 
-      tree_t child;
-      result_t child_result;
+	}else{
+
 
       play_move(T, moves[i], &child);
-
-      evaluate(&child, &child_result);
-
-      int child_score = -child_result.score;
+		evaluate(&child, &child_result);
+		      int child_score = -child_result.score;
 
       if (child_score > result->score) {
        result->score = child_score;
@@ -99,9 +97,11 @@ else{
     //  break;    
 
     T->alpha = MAX(T->alpha, child_score);
-  }
-}
+	}
 
+
+  }
+#pragma omp taskwait
 if (TRANSPOSITION_TABLE)
   tt_store(T, result);
 }
@@ -109,6 +109,8 @@ if (TRANSPOSITION_TABLE)
 
 void decide(tree_t * T, result_t *result)
 {
+ //#pragma omp parallel
+ // #pragma omp single nowait
 	for (int depth = 1;; depth++) {
 		T->depth = depth;
 		T->height = 0;
@@ -116,6 +118,7 @@ void decide(tree_t * T, result_t *result)
 		T->beta = MAX_SCORE + 1;
 
     printf("=====================================\n");
+ 
     evaluate(T, result);
 
     printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
