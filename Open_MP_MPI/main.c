@@ -179,7 +179,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   result_t new_child_result, new_result;
   // j correspond à l'indice où en est le processus de calcul
   int over = 0, new_over=0, termine_premiere_partie = 0, indice_calcul, indice_fin, nb_elem, nb_elem_demande;
-  int fini = 1;
+  int fini = 1, go=0;
   // Initialisation du job tant qu'on peut on envoi un job à n processus
   //  Chaque processus doit commencer avec un job
   #pragma omp parallel sections
@@ -237,6 +237,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
         }
 	     printf("#ROOT fin initialisation\n");	
+       #pragma omp critical
+       go = 1;
       }
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
@@ -340,49 +342,57 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     /*** SECTION calcul première partie ***/
     #pragma omp section
     {
-      printf("#ROOT je commence le calcul\n");
-      // En gros sur chaque move on envoie evaluate 
-      for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) {
-        // Si on est arrivé au bout: en cas de raccourcissement
-        if(indice_calcul >= indice_fin-1)
-          break;
-        play_move(T, moves[indice_calcul], &child);
+      int temp_go;
+      while(1){
+        #pragma omp critical
+        temp_go = go;
+        if(temp_go){
+          printf("#ROOT je commence le calcul\n");
+          // En gros sur chaque move on envoie evaluate 
+          for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) {
+            // Si on est arrivé au bout: en cas de raccourcissement
+            if(indice_calcul >= indice_fin-1)
+              break;
+            play_move(T, moves[indice_calcul], &child);
 
-        evaluate(&child, &child_result);
+            evaluate(&child, &child_result);
 
-        int child_score = -child_result.score;
+            int child_score = -child_result.score;
 
-        if (child_score > result->score) {
-         result->score = child_score;
-         result->best_move = moves[indice_calcul];
-         result->pv_length = child_result.pv_length + 1;
-         for(int j = 0; j < child_result.pv_length; j++)
-          result->PV[j+1] = child_result.PV[j];
-         result->PV[0] = moves[indice_calcul];
-        }
-
-      }
-      printf("#ROOT j'ai fini la première partie du calcul");
-      /*** Première partie du calcul fini ***/
-      #pragma omp critical
-      termine_premiere_partie = 1;
-      #pragma omp critical
-      over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
-      // Ici on se met en attente du process de communication
-      // On recupère et on traite les demandes
-      while(fini){
-        // le process de calcul nous signale qu'on peux y aller
-        if (over == 0 && new_over == 0){
-          for (indice_calcul = 0; indice_calcul < nb_elem_demande; indice_calcul++) {
-
-            play_move(&new_T, new_move, &new_child);
-
-            evaluate(&new_child, &new_child_result);
+            if (child_score > result->score) {
+             result->score = child_score;
+             result->best_move = moves[indice_calcul];
+             result->pv_length = child_result.pv_length + 1;
+             for(int j = 0; j < child_result.pv_length; j++)
+              result->PV[j+1] = child_result.PV[j];
+             result->PV[0] = moves[indice_calcul];
+            }
 
           }
-          // On a fini le calcul
+          printf("#ROOT j'ai fini la première partie du calcul");
+          /*** Première partie du calcul fini ***/
           #pragma omp critical
-          new_over = 1;
+          termine_premiere_partie = 1;
+          #pragma omp critical
+          over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
+          // Ici on se met en attente du process de communication
+          // On recupère et on traite les demandes
+          while(fini){
+            // le process de calcul nous signale qu'on peux y aller
+            if (over == 0 && new_over == 0){
+              for (indice_calcul = 0; indice_calcul < nb_elem_demande; indice_calcul++) {
+
+                play_move(&new_T, new_move, &new_child);
+
+                evaluate(&new_child, &new_child_result);
+
+              }
+              // On a fini le calcul
+              #pragma omp critical
+              new_over = 1;
+            }
+          }
+        
         }
       
     }
