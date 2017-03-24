@@ -573,6 +573,7 @@ int main(int argc, char **argv)
             // Si on reçoit une demande
             if(tag == TAG_DEMANDE)
             {
+              printf("#%d reçoit une demande  \n", rang);
               // on recupre le demandeur
               demandeur = status.MPI_SOURCE;
               // on reçoit le move
@@ -585,6 +586,7 @@ int main(int argc, char **argv)
               go = 1;      
              }
               if(tag = TAG_RESULT){
+                printf("#%d reçoit un resultat \n", rang);
                 // On la reçoit et on la traite
                 result_t new_child_result;
                 MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
@@ -602,6 +604,7 @@ int main(int argc, char **argv)
               }
               //Si on reçoit un jeton de calcul
               if(tag == TAG_JETON_CALCUL){
+                printf("#%d reçoit un jeton de calcul \n", rang);
                 envoyeur = status.MPI_SOURCE;
                 // on teste savoir si ce n'estas notre propre jeton de calcul
                 if(envoyeur != rang){
@@ -613,7 +616,13 @@ int main(int argc, char **argv)
                     // On attend la réponse pour pas la perdre
                     attente = 1;
                   }
+                  else{
+                    // On transmet le jeton
+                    MPI_Send(&envoyeur, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                  }
                 }
+
+
 
               }
               // Si on a le signal de fin
