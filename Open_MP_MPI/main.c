@@ -555,6 +555,7 @@ int main(int argc, char **argv)
               // on lance le calcul 
               nb_elem = count;
               indice_fin =nb_elem;
+              #pragma omp critical
               go = 1;
               // on stocke à qui on doit renvoyer
               demandeur = 0;
@@ -634,9 +635,12 @@ int main(int argc, char **argv)
           /*** THREAD CALCUL ***/
           #pragma omp section
           {
+            int temp_go;
             while(fini)
             {
-              if(go == 1){
+              #pragma omp critical
+              temp_go = go;
+              if(temp_go == 1){
                 printf("#%d commence le calcul \n", rang);
                 tree_t child;
                 result_t child_result;
