@@ -562,6 +562,7 @@ int main(int argc, char **argv)
             // Si le thread de calcul a fini on envoit le result au demandeur
             if(over == 1 && attente == 0)
             {
+              printf("#%d essaye d'envoyer un result \n", rang)
               // envoit du result
               MPI_Send(&result, 1, mpi_result_t, demandeur, tag, MPI_COMM_WORLD);
               // envoit du jeton de calcul
