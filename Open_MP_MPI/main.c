@@ -525,12 +525,12 @@ int main(int argc, char **argv)
       fprintf( stdout, "%g\n", fin - debut);
       printf("\nDécision de la position: ");
       switch(result.score * (2*T.side - 1)) {
-        case MAX_SCORE: printf("blanc gagne\n"); break;
-        case CERTAIN_DRAW: printf("partie nulle\n"); break;
-        case -MAX_SCORE: printf("noir gagne\n"); break;
-        default: printf("BUG\n");
-    }
-    printf("Node searched: %llu\n", node_searched);
+          case MAX_SCORE: printf("blanc gagne\n"); break;
+          case CERTAIN_DRAW: printf("partie nulle\n"); break;
+          case -MAX_SCORE: printf("noir gagne\n"); break;
+          default: printf("BUG\n");
+      }
+      printf("Node searched: %llu\n", node_searched);
       /* free everything */
       if (TRANSPOSITION_TABLE)
         free_tt();
@@ -707,7 +707,7 @@ int main(int argc, char **argv)
       }
       MPI_Finalize();
     }
-  }  
+    
 
       
     
