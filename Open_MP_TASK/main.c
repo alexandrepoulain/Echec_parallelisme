@@ -53,12 +53,12 @@ void evaluate(tree_t * T, result_t *result)
       result_t child_result;
 	if(T->depth-T->height>9){
 		
-		#pragma omp task shared(child_result) untied
+		#pragma omp task untied
 		{
   
 
       play_move(T, moves[i], &child);
-		printf("TACHE CREEE n%d m%d\n",child.height,i);
+		//printf("TACHE CREEE n%d m%d\n",child.height,i);
 		evaluate(&child, &child_result);
 		      int child_score = -child_result.score;
 
@@ -109,8 +109,6 @@ if (TRANSPOSITION_TABLE)
 
 void decide(tree_t * T, result_t *result)
 {
- //#pragma omp parallel
- // #pragma omp single nowait
 	for (int depth = 1;; depth++) {
 		T->depth = depth;
 		T->height = 0;
@@ -118,7 +116,8 @@ void decide(tree_t * T, result_t *result)
 		T->beta = MAX_SCORE + 1;
 
     printf("=====================================\n");
- 
+ #pragma omp parallel
+     #pragma omp single 
     evaluate(T, result);
 
     printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
