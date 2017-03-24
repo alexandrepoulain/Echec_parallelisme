@@ -577,7 +577,7 @@ int main(int argc, char **argv)
               #pragma omp critical
               {
           			move = malloc(count*sizeof(move_t));
-          			MPI_Recv(&move, count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
+          			MPI_Recv(&move[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                 printf("#%d move[0] = %d\n",rang,move[0]);
               }
               printf("#%d j'ai reçu les moves de ROOT \n",rang);
