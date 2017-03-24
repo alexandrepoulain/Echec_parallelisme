@@ -557,7 +557,8 @@ int main(int argc, char **argv)
               indice_fin =nb_elem;
               go = 1;
               // on stocke à qui on doit renvoyer
-                demandeur = 0;
+              demandeur = 0;
+              printf("#%d go = %d\n", go);
             }
             // Si le thread de calcul a fini on envoit le result au demandeur
             if(over == 1 && attente == 0)
@@ -636,7 +637,7 @@ int main(int argc, char **argv)
           {
             while(fini)
             {
-              printf("#%d commence le calcul \n", rang);
+
               if(go == 1){
                 printf("#%d commence le calcul \n", rang);
                 tree_t child;
