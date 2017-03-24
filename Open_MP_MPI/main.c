@@ -557,8 +557,9 @@ int main(int argc, char **argv)
         	int demandeur, envoyeur;
         	while(fini)
         	{
-        		// Probe pour connaître la nature du receive
-        		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        		// Probe pour connaître la nature du receive (NON BLOQUANT)
+            int flag;
+        		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
             tag = status.MPI_TAG;
         		printf("#%d Je viens de recevoir un signal\n",rang);
   	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
