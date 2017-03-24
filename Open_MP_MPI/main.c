@@ -404,8 +404,8 @@ int main(int argc, char **argv)
 
   /* Init MPI */
   int NP, rang, tag = 10;
-  int* provided;
-  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, provided);
+  int provided;
+  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
    printf("here is the main\n");
   if(provided < MPI_THREAD_MULTIPLE){
     printf("Error level provided less than required\n");
