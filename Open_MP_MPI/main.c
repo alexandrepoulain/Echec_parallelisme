@@ -207,6 +207,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         printf("#ROOT indice = %i\n", i);
 	      if (reste!=0){
           move_t send_moves[nb_elem+1];
+          #pragma omp critical
           reste--;
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem+1; j++){
@@ -222,6 +223,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         // le reste est égal à 0
         else{
           move_t send_moves[nb_elem];
+          #pragma omp critical
           reste--;
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem; j++){
@@ -262,6 +264,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           T->alpha = MAX(T->alpha, child_score);
           // Si toutes les régions ont répondu on arrête
           if(nb_regions == 0)
+            #pragma omp critical
             fini = 0;
         }
 
@@ -273,8 +276,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status); 
           // Récupération du plateau 
           MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status);
+          #pragma omp critical
           nb_elem_demande=1;
           // On signale au tread de calcul qu'il peux y aller
+          #pragma omp critical
           over = 0;
         }
 
@@ -291,7 +296,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // On envoit le result au demandeur
           MPI_Send(&new_result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
           // on va se placer en émission d'un jeton de calcul
+          #pragma omp critical
           over = 1;
+          #pragma omp critical
           new_over = 0;
         }
 
@@ -333,6 +340,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     /*** SECTION calcul première partie ***/
     #pragma omp section
     {
+      printf("#ROOT je commence le calcul\n");
       // En gros sur chaque move on envoie evaluate 
       for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) {
         // Si on est arrivé au bout: en cas de raccourcissement
@@ -354,8 +362,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         }
 
       }
+      printf("#ROOT j'ai fini la première partie du calcul");
       /*** Première partie du calcul fini ***/
+      #pragma omp critical
       termine_premiere_partie = 1;
+      #pragma omp critical
       over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
       // Ici on se met en attente du process de communication
       // On recupère et on traite les demandes
@@ -370,6 +381,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
           }
           // On a fini le calcul
+          #pragma omp critical
           new_over = 1;
         }
       
@@ -651,7 +663,7 @@ int main(int argc, char **argv)
                   play_move(&root_proc, move[indice], &child);
 
                   evaluate(&child, &child_result);
-
+                  printf("#%d test milieu calcul après evaluate\n", rang);
                   int child_score = -child_result.score;
 
                   if (child_score > result.score) {
