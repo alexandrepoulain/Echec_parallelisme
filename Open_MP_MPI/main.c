@@ -558,7 +558,7 @@ int main(int argc, char **argv)
         	while(fini)
         	{
         		// Probe pour connaître la nature du receive
-        		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_SOURCE, MPI_COMM_WORLD, &status);
+        		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             tag = status.MPI_TAG;
         		printf("#%d Je viens de recevoir un signal\n",rang);
   	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
@@ -570,6 +570,7 @@ int main(int argc, char **argv)
               printf("#%d j'ai reçu l'arbre de ROOT \n",rang);
         			// Receive les moves
         			// Il faut connaître le nombre de moves à recevoir
+              MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
         			MPI_Get_count(&status, MPI_INT, &count);
         			//Receive des moves
               printf("#%d Je reçois %d moves \n",rang, count);
@@ -603,6 +604,7 @@ int main(int argc, char **argv)
               // on recupre le demandeur
               demandeur = status.MPI_SOURCE;
               // on reçoit le move
+
               MPI_Get_count(&status, MPI_INT, &count);
               move = (move_t*)malloc(count*sizeof(move_t));
               MPI_Recv(&move, count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
