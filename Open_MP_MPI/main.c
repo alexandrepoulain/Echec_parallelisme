@@ -248,12 +248,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       while(fini)
       {
         // Un probe pour connaiître la nature du message à recevoir
-
-        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        int flag;
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
         tag = status.MPI_TAG; 
         // Receive d'un resultat de sous arbre
         if(tag == TAG_RESULT){
-          MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
+          
+          MPI_Recv(&child_result, 1, mpi_result_t, status.MPI_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
           nb_regions--;
           int child_score = -child_result.score;
           if (child_score > result->score){
@@ -270,6 +271,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           if(nb_regions == 0)
             #pragma omp critical
             fini = 0;
+          printf("#ROOT bien reçu et traité %d\n", status.MPI_SOURCE);
         }
 
         // Si on reçoit une demande de calcul en réponse à un jeton
