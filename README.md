@@ -3,21 +3,21 @@
 4k//4K//4P w
 
 
-seq
+seq : 
 25.54s
 
 
-open 2c
+open (2c) : 
 15.3s
 
 
-mpi 4p
+mpi (4p) : 
 13.91s
 
 
-open task 2c
+open task (2c) : 
 25.77s
 
 
-open mpi 2c 5p
+open mpi (2c 5p) : 
 9.93s
