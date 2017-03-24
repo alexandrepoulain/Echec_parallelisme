@@ -406,7 +406,7 @@ int main(int argc, char **argv)
   int NP, rang, tag = 10;
   int provided;
   MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
-   printf("here is the main\n");
+   
   if(provided < MPI_THREAD_MULTIPLE){
     printf("Error level provided less than required\n");
   }
@@ -525,7 +525,7 @@ int main(int argc, char **argv)
       int fini=1, source, go = 0, over, attente;
       int count, indice, nb_elem, indice_fin;
       result_t result;
-
+      printf("#%d Au rapport\n", rang);
       #pragma omp parallel sections
       {
       	#pragma omp section
