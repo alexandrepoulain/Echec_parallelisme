@@ -64,7 +64,7 @@ void evaluate(tree_t * T, result_t *result)
   
 
       play_move(T, moves[i], &child);
-		printf("TACHE CREEE n%d m%d\n",child.height,i);
+		//printf("TACHE CREEE n%d m%d\n",child.height,i);
 		evaluate(&child, &child_result);
 		      int child_score = -child_result.score;
 
