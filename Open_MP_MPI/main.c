@@ -204,7 +204,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       for (int i = 1; i < nb_regions ; i++) {
         // SALE si on est arrivé au max du nombre de processus on arrête 
         // tant que le reste eest pas égal à 0 on rajoute un élément au message
-        if (reste!=0){
+        printf("#ROOT nb_regions = %d\n", nb_regions);
+	if (reste!=0){
           move_t send_moves[nb_elem+1];
           reste--;
           // on remplit le tableau de moves à envoyer
@@ -213,7 +214,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           }
           // on envoie au thread de comm du processus correspondant
           MPI_Send(T, 1, mpi_tree_t, i, TAG_INIT, MPI_COMM_WORLD);
-          //printf("#ROOT envoi à #%d\n", i);
+          printf("#ROOT envoi à #%d\n", i);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves, nb_elem+1, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
@@ -227,12 +228,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             send_moves[j]=moves[nb_regions+j];
           }
           // on envoie au thread de comm du processus correspondant
-          MPI_Send(T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
+          MPI_Send(T, 1, mpi_tree_t, i, TAG_INIT, MPI_COMM_WORLD);
           //printf("#ROOT envoi à #%d\n", i);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-          MPI_Send(&send_moves, nb_elem, MPI_INT, i, tag, MPI_COMM_WORLD);
+          MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
         }
+	printf("#ROOT fin initialisation\n");	
       }
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
@@ -379,6 +381,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
 {
+	printf("#ROOT rentre dans decide\n");
 	for (int depth = 1;; depth++) {
 		T->depth = depth;
 		T->height = 0;
@@ -424,6 +427,7 @@ int main(int argc, char **argv)
   MPI_Aint     offsets[14];
 
   offsets[0] = offsetof(tree_t, pieces);
+  offsets[1] = offsetof(tree_t, colors);
   offsets[1] = offsetof(tree_t, colors);
   offsets[2] = offsetof(tree_t, side);
   offsets[3] = offsetof(tree_t, depth);
@@ -526,14 +530,17 @@ int main(int argc, char **argv)
       /*** THREAD COMM ***/
       #pragma omp section
       {
+	
         int demandeur, envoyeur;
         while(fini)
         {
           // Probe pour connaître la nature du receive
           MPI_Probe(source, tag, MPI_COMM_WORLD, &status);
-          // Si c'est une initiation: on la prend (elle provient forcement de 0)
+          printf("#%d Je viens de recevoir un signal\n",rang);
+		// Si c'est une initiation: on la prend (elle provient forcement de 0)
           if(tag == TAG_INIT)
           {
+		printf("#%d je reçois de ROOT \n",rang);
             // Rceive tree
             MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_INIT, MPI_COMM_WORLD, &status);
             // Receive les moves
