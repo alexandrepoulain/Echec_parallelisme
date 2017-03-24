@@ -542,7 +542,7 @@ int main(int argc, char **argv)
         		{
 		          printf("#%d je reçois de ROOT \n",rang);
         			// Rceive tree
-        			MPI_Recv(&root_proc, 1, mpi_tree_t, , TAG_INIT, MPI_COMM_WORLD, &status);
+        			MPI_Recv(&root_proc, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
               printf("#%d j'ai reçu l'arbre de ROOT \n",rang);
         			// Receive les moves
         			// Il faut connaître le nombre de moves à recevoir
