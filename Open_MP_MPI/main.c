@@ -560,10 +560,11 @@ int main(int argc, char **argv)
         		// Probe pour connaître la nature du receive (NON BLOQUANT)
             int flag;
         		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            printf("#%d flag = %d\n",rang,flag);
             tag = status.MPI_TAG;
         		printf("#%d Je viens de recevoir un signal\n",rang);
   	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
-        		if(tag == TAG_INIT)
+        		if(tag == TAG_INIT && over == 0)
         		{
 		          printf("#%d je reçois de ROOT \n",rang);
         			// Rceive tree
