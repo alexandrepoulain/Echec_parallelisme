@@ -403,152 +403,150 @@ int main(int argc, char **argv)
 	
 
   /* Init MPI */
-  int NP, rang, tag = 10;
-  MPI_Init(&argc,&argv);
-  // nombre de processus
-  
-  MPI_Comm_size(MPI_COMM_WORLD, &NP);
-  // Le rang des processus
-  MPI_Comm_rank(MPI_COMM_WORLD, &rang);
-  // le status
-  MPI_Status status;
-  
+  int NP, rang, tag = 10, *provided;
+  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, provided);
 
-  /* On va creer toutes les structures pour l'envoi d'information par MPI
-      Le premier pour le plateau de jeu
-      et le deuxième pour la structure result
-  */
-
-  /* Plateau de jeu */
-  const int nitems=14;
-  int          blocklengths[14] = {128,128,1,1,1,1,1,1,2,2,128,1,1, MAX_DEPTH};
-  MPI_Datatype types[14] = {MPI_CHAR, MPI_CHAR, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_CHAR, MPI_INT, MPI_INT, MPI_INT};
-  MPI_Datatype mpi_tree_t;
-  MPI_Aint     offsets[14];
-
-  offsets[0] = offsetof(tree_t, pieces);
-  offsets[1] = offsetof(tree_t, colors);
-  offsets[1] = offsetof(tree_t, colors);
-  offsets[2] = offsetof(tree_t, side);
-  offsets[3] = offsetof(tree_t, depth);
-  offsets[4] = offsetof(tree_t, height);
-  offsets[5] = offsetof(tree_t, alpha);
-  offsets[6] = offsetof(tree_t, beta);
-  offsets[7] = offsetof(tree_t, alpha_start);
-  offsets[8] = offsetof(tree_t, king);
-  offsets[9] = offsetof(tree_t, pawns);
-  offsets[10] = offsetof(tree_t, attack);
-  offsets[11] = offsetof(tree_t, suggested_move);
-  offsets[12] = offsetof(tree_t, hash);
-  offsets[13] = offsetof(tree_t, history);
-
-  MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_tree_t);
-  MPI_Type_commit(&mpi_tree_t);
-
-  /* Le result */
-  const int nitems2=4;
-  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
-  MPI_Datatype types2[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
-  MPI_Datatype mpi_result_t;
-  MPI_Aint     offsets2[4];
-
-  offsets2[0] = offsetof(result_t, score);
-  offsets2[1] = offsetof(result_t, best_move);
-  offsets2[2] = offsetof(result_t, pv_length);
-  offsets2[3] = offsetof(result_t, PV);
-
-  MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
-  MPI_Type_commit(&mpi_result_t);
-
-  
-
-
-  /* Si je suis le processus 0 je rentre dans la fonction decide */
-  if(rang == 0){
-    int i; 
-    double debut, fin;
-    tree_t T;
-    result_t result;
-    if (argc < 2) {
-      printf("usage: %s \"4k//4K/4P w\" (or any position in FEN)\n", argv[0]);
-      exit(1);
-    }
-
-    if (ALPHA_BETA_PRUNING)
-      printf("Alpha-beta pruning ENABLED\n");
-
-    if (TRANSPOSITION_TABLE) {
-      printf("Transposition table ENABLED\n");
-      init_tt();
-    }
-
-    parse_FEN(argv[1], &T);
-    //print_position(&T);
-    debut = my_gettimeofday();
-    // nowait pour pas qu'il attend l'autre
-    // un thread sert 
-
-    decide(&T, &result, tag, NP, status, rang);
-    for(i=1; i<NP; i++){
-      //printf("#ROOT envoi finalize %d\n", i);
-      MPI_Send(&T, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
-    }
-    fin = my_gettimeofday();  
-    fprintf( stderr, "Temps total de calcul : %g sec\n", 
-     fin - debut);
-    fprintf( stdout, "%g\n", fin - debut);
-    printf("\nDécision de la position: ");
-    switch(result.score * (2*T.side - 1)) {
-      case MAX_SCORE: printf("blanc gagne\n"); break;
-      case CERTAIN_DRAW: printf("partie nulle\n"); break;
-      case -MAX_SCORE: printf("noir gagne\n"); break;
-      default: printf("BUG\n");
+  if(*provided < MPI_THREAD_MULTIPLE){
+    printf("Error level provided less than required\n");
   }
-  printf("Node searched: %llu\n", node_searched);
-    /* free everything */
-    if (TRANSPOSITION_TABLE)
-      free_tt();
-    MPI_Type_free(&mpi_tree_t);
-    MPI_Type_free(&mpi_result_t);
-    MPI_Finalize();
-  }
-  /* sinon je suis dans un while tant qu'on me dit pas que c'est fini
-    Au début je reçois un job et je l'execute 
-    Dès que je l'ai fini je me signale au maître "Pret pour un nouveau job"
-  */
   else{
-    /*** PARTIE PARTAGE ***/
-    tree_t root_proc; 
-    move_t* move;
-    int fini=1, source, go = 0, over, attente;
-    int count, indice, nb_elem, indice_fin;
-    result_t result;
+    MPI_Comm_size(MPI_COMM_WORLD, &NP);
+    // Le rang des processus
+    MPI_Comm_rank(MPI_COMM_WORLD, &rang);
+    // le status
+    MPI_Status status;
+    
+  /* On va creer toutes les structures pour l'envoi d'information par MPI
+        Le premier pour le plateau de jeu
+        et le deuxième pour la structure result
+    */
 
-    #pragma omp parallel sections
-    {
-      
-      /*** THREAD COMM ***/
-      #pragma omp section
+    /* Plateau de jeu */
+    const int nitems=14;
+    int          blocklengths[14] = {128,128,1,1,1,1,1,1,2,2,128,1,1, MAX_DEPTH};
+    MPI_Datatype types[14] = {MPI_CHAR, MPI_CHAR, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_CHAR, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype mpi_tree_t;
+    MPI_Aint     offsets[14];
+
+    offsets[0] = offsetof(tree_t, pieces);
+    offsets[1] = offsetof(tree_t, colors);
+    offsets[2] = offsetof(tree_t, side);
+    offsets[3] = offsetof(tree_t, depth);
+    offsets[4] = offsetof(tree_t, height);
+    offsets[5] = offsetof(tree_t, alpha);
+    offsets[6] = offsetof(tree_t, beta);
+    offsets[7] = offsetof(tree_t, alpha_start);
+    offsets[8] = offsetof(tree_t, king);
+   offsets[9] = offsetof(tree_t, pawns);
+    offsets[10] = offsetof(tree_t, attack);
+    offsets[11] = offsetof(tree_t, suggested_move);
+    offsets[12] = offsetof(tree_t, hash);
+    offsets[13] = offsetof(tree_t, history);
+
+    MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_tree_t);
+    MPI_Type_commit(&mpi_tree_t);
+
+    /* Le result */
+    const int nitems2=4;
+    int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
+    MPI_Datatype types2[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype mpi_result_t;
+    MPI_Aint     offsets2[4];
+
+    offsets2[0] = offsetof(result_t, score);
+    offsets2[1] = offsetof(result_t, best_move);
+    offsets2[2] = offsetof(result_t, pv_length);
+    offsets2[3] = offsetof(result_t, PV);
+
+    MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
+    MPI_Type_commit(&mpi_result_t);
+
+    
+
+
+    /* Si je suis le processus 0 je rentre dans la fonction decide */
+    if(rang == 0){
+      int i; 
+      double debut, fin;
+      tree_t T;
+      result_t result;
+      if (argc < 2) {
+        printf("usage: %s \"4k//4K/4P w\" (or any position in FEN)\n", argv[0]);
+        exit(1);
+      }
+
+      if (ALPHA_BETA_PRUNING)
+        printf("Alpha-beta pruning ENABLED\n");
+
+      if (TRANSPOSITION_TABLE) {
+        printf("Transposition table ENABLED\n");
+        init_tt();
+      }
+
+      parse_FEN(argv[1], &T);
+      //print_position(&T);
+      debut = my_gettimeofday();
+      // nowait pour pas qu'il attend l'autre
+      // un thread sert 
+
+      decide(&T, &result, tag, NP, status, rang);
+      for(i=1; i<NP; i++){
+        //printf("#ROOT envoi finalize %d\n", i);
+        MPI_Send(&T, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
+      }
+      fin = my_gettimeofday();  
+      fprintf( stderr, "Temps total de calcul : %g sec\n", 
+       fin - debut);
+      fprintf( stdout, "%g\n", fin - debut);
+      printf("\nDécision de la position: ");
+      switch(result.score * (2*T.side - 1)) {
+        case MAX_SCORE: printf("blanc gagne\n"); break;
+        case CERTAIN_DRAW: printf("partie nulle\n"); break;
+        case -MAX_SCORE: printf("noir gagne\n"); break;
+        default: printf("BUG\n");
+    }
+    printf("Node searched: %llu\n", node_searched);
+      /* free everything */
+      if (TRANSPOSITION_TABLE)
+        free_tt();
+      MPI_Type_free(&mpi_tree_t);
+      MPI_Type_free(&mpi_result_t);
+      MPI_Finalize();
+    }
+    /* sinon je suis dans un while tant qu'on me dit pas que c'est fini
+      Au début je reçois un job et je l'execute 
+      Dès que je l'ai fini je me signale au maître "Pret pour un nouveau job"
+    */
+    else{
+      /*** PARTIE PARTAGE ***/
+      tree_t root_proc; 
+      move_t* move;
+      int fini=1, source, go = 0, over, attente;
+      int count, indice, nb_elem, indice_fin;
+      result_t result;
+
+      #pragma omp parallel sections
       {
-	
-        int demandeur, envoyeur;
-        while(fini)
-        {
-          // Probe pour connaître la nature du receive
-          MPI_Probe(source, tag, MPI_COMM_WORLD, &status);
-          printf("#%d Je viens de recevoir un signal\n",rang);
-		// Si c'est une initiation: on la prend (elle provient forcement de 0)
-          if(tag == TAG_INIT)
-          {
-		printf("#%d je reçois de ROOT \n",rang);
-            // Rceive tree
-            MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_INIT, MPI_COMM_WORLD, &status);
-            // Receive les moves
-            // Il faut connaître le nombre de moves à recevoir
-            MPI_Get_count(&status, MPI_INT, &count);
-            //Receive des moves
-            move = (move_t*)malloc(count*sizeof(move_t));
-            MPI_Recv(&move, count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
+	#pragma omp section
+	{	
+        	int demandeur, envoyeur;
+        	while(fini)
+        	{
+          		// Probe pour connaître la nature du receive
+          		MPI_Probe(source, tag, MPI_COMM_WORLD, &status);
+          		printf("#%d Je viens de recevoir un signal\n",rang);
+			// Si c'est une initiation: on la prend (elle provient forcement de 0)
+          		if(tag == TAG_INIT)
+          		{
+				printf("#%d je reçois de ROOT \n",rang);
+            			// Rceive tree
+            			MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_INIT, MPI_COMM_WORLD, &status);
+            			// Receive les moves
+            			// Il faut connaître le nombre de moves à recevoir
+            			MPI_Get_count(&status, MPI_INT, &count);
+            			//Receive des moves
+            			move = (move_t*)malloc(count*sizeof(move_t));
+            			MPI_Recv(&move, count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
             // on lance le calcul 
             nb_elem = count;
             indice_fin =nb_elem;
@@ -578,86 +576,85 @@ int main(int argc, char **argv)
             // recoit l'arbre
             MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_INIT, MPI_COMM_WORLD, &status);
             nb_elem = 1;
-            go = 1;
-
-          }
-          if(tag = TAG_RESULT){
-            // On la reçoit et on la traite
-            result_t new_child_result;
-            MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-            int child_score = -new_child_result.score;
-            if (child_score > result.score) {
-             result.score = child_score;
-             result.best_move = new_child_result.best_move;
-             result.pv_length = new_child_result.pv_length + 1;
-             for(int j = 0; j < new_child_result.pv_length; j++)
-              result.PV[j+1] = new_child_result.PV[j];
-             result.PV[0] = new_child_result.best_move;
-            }
-            // On attend plus de résultat
-            attente = 0;
-          }
-          //Si on reçoit un jeton de calcul
-          if(tag == TAG_JETON_CALCUL){
-            envoyeur = status.MPI_SOURCE;
-            // on teste savoir si ce n'estas notre propre jeton de calcul
-            if(envoyeur != rang){
-            // On test où on en est
-              if(indice+2 < nb_elem){
-                indice_fin--;
-                MPI_Send(&move[nb_elem-1],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                MPI_Send(&root_proc,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                // On attend la réponse pour pas la perdre
-                attente = 1;
-              }
-            }
-
-          }
-          // Si on a le signal de fin
-          if(tag == TAG_END)
-            fini = 0;
-        }
-        
-      }
-      /*** THREAD CALCUL ***/
-      #pragma omp section
-      {
-        while(fini)
-        {
-          if(go == 1){
-            tree_t child;
-            result_t child_result;
-            for(indice = 0; indice < nb_elem; indice++)
-            {
-              if(indice >= indice_fin-1)
-                break;
-              play_move(&root_proc, move[indice], &child);
-
-              evaluate(&child, &child_result);
-
-              int child_score = -child_result.score;
-
+            go = 1;      
+           }
+            if(tag = TAG_RESULT){
+              // On la reçoit et on la traite
+              result_t new_child_result;
+              MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
+              int child_score = -new_child_result.score;
               if (child_score > result.score) {
                result.score = child_score;
-               result.best_move = move[indice];
-               result.pv_length = child_result.pv_length + 1;
-               for(int j = 0; j < child_result.pv_length; j++)
-                result.PV[j+1] = child_result.PV[j];
-               result.PV[0] = move[indice];
+               result.best_move = new_child_result.best_move;
+               result.pv_length = new_child_result.pv_length + 1;
+               for(int j = 0; j < new_child_result.pv_length; j++)
+                result.PV[j+1] = new_child_result.PV[j];
+               result.PV[0] = new_child_result.best_move;
               }
+              // On attend plus de résultat
+              attente = 0;
             }
-            over = 1;
-            go = 0;
+            //Si on reçoit un jeton de calcul
+            if(tag == TAG_JETON_CALCUL){
+              envoyeur = status.MPI_SOURCE;
+              // on teste savoir si ce n'estas notre propre jeton de calcul
+              if(envoyeur != rang){
+              // On test où on en est
+                if(indice+2 < nb_elem){
+                  indice_fin--;
+                  MPI_Send(&move[nb_elem-1],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                  MPI_Send(&root_proc,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                  // On attend la réponse pour pas la perdre
+                  attente = 1;
+                }
+              }
+
+            }
+            // Si on a le signal de fin
+            if(tag == TAG_END)
+              fini = 0;
+          }
+          
+        }
+        /*** THREAD CALCUL ***/
+        #pragma omp section
+        {
+          while(fini)
+          {
+            if(go == 1){
+              tree_t child;
+              result_t child_result;
+              for(indice = 0; indice < nb_elem; indice++)
+              {
+                if(indice >= indice_fin-1)
+                  break;
+                play_move(&root_proc, move[indice], &child);
+
+                evaluate(&child, &child_result);
+
+                int child_score = -child_result.score;
+
+                if (child_score > result.score) {
+                 result.score = child_score;
+                 result.best_move = move[indice];
+                 result.pv_length = child_result.pv_length + 1;
+                 for(int j = 0; j < child_result.pv_length; j++)
+                  result.PV[j+1] = child_result.PV[j];
+                 result.PV[0] = move[indice];
+                }
+              }
+              over = 1;
+              go = 0;
+            }
           }
         }
+
       }
-
+      MPI_Finalize();
     }
-    MPI_Finalize();
-  }
-  
+  }  
 
+      
     
-  
   return 0;
 }
