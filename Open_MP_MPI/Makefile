@@ -1,6 +1,6 @@
 target: decide
 
-CFLAGS=-g -O3 -std=c99
+CFLAGS=-g -O3 -std=c99 -fopenmp
 CC = mpicc
 
 main.o: main.c projet.h
