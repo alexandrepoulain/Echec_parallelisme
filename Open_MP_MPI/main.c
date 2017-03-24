@@ -558,7 +558,7 @@ int main(int argc, char **argv)
               go = 1;
               // on stocke à qui on doit renvoyer
               demandeur = 0;
-              printf("#%d go = %d\n", go);
+              printf("#%d go = %d\n", rang, go);
             }
             // Si le thread de calcul a fini on envoit le result au demandeur
             if(over == 1 && attente == 0)
