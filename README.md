@@ -1,6 +1,6 @@
 # Echec_parallelisme
 
-4k//4K//4P w
+-------- 4k//4K//4P w --------
 
 
 seq : 
@@ -27,7 +27,7 @@ open task mpi (2c 5p) :
 10.0281s
 
 
-4k//4K///4P w
+-------- 4k//4K///4P w --------
 
 
 seq : 
