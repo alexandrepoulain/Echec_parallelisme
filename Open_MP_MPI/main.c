@@ -636,7 +636,6 @@ int main(int argc, char **argv)
           {
             while(fini)
             {
-              printf("#%d go = %d\n", rang, go);
               if(go == 1){
                 printf("#%d commence le calcul \n", rang);
                 tree_t child;
