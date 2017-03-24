@@ -576,6 +576,7 @@ int main(int argc, char **argv)
               printf("#%d Je reçois %d moves \n",rang, count);
         			move = (move_t*)malloc(count*sizeof(move_t));
         			MPI_Recv(&move, count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
+              printf("#%d move[0] = %d\n",rang,move[0]);
               printf("#%d j'ai reçu les moves de ROOT \n",rang);
 
               // on lance le calcul 
