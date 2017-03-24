@@ -578,7 +578,6 @@ int main(int argc, char **argv)
               {
           			move = malloc(count*sizeof(move_t));
           			MPI_Recv(&move[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
-                printf("#%d move[0] = %d\n",rang,move[0]);
               }
               printf("#%d j'ai reçu les moves de ROOT \n",rang);
 
@@ -611,8 +610,7 @@ int main(int argc, char **argv)
 
               MPI_Get_count(&status, MPI_INT, &count);
               move = (move_t*)malloc(count*sizeof(move_t));
-              MPI_Recv(&move, count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
-              printf("#%d move[0] = %d\n",rang,move[0]);
+              MPI_Recv(&move[0], count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
               // recoit l'arbre
               MPI_Recv(&root_proc, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
               nb_elem = 1;
@@ -697,6 +695,7 @@ int main(int argc, char **argv)
                    result.PV[0] = move[indice];
                   }
                 }
+                printf("#%d Fini le calcul\n", rang);
                 over = 1;
                 go = 0;
               }
