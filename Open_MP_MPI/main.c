@@ -200,7 +200,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       }
       // fixe l'indice de fin pour le processus 0
       indice_fin = nb_elem;
-
+      // Processus 0 peut commencer
+      #pragma omp critical
+       go = 1;
       for (int i = 1; i < nb_regions ; i++) {
         // SALE si on est arrivé au max du nombre de processus on arrête 
         // tant que le reste eest pas égal à 0 on rajoute un élément au message
@@ -215,7 +217,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           }
           // on envoie au thread de comm du processus correspondant
           MPI_Send(T, 1, mpi_tree_t, i, TAG_INIT, MPI_COMM_WORLD);
-          printf("#ROOT envoi à #%d\n", i);
+          printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem+1);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves, nb_elem+1, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
@@ -234,11 +236,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           //printf("#ROOT envoi à #%d\n", i);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
+          printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem);
           MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
         }
 	     printf("#ROOT fin initialisation\n");	
-       #pragma omp critical
-       go = 1;
+       
       }
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
@@ -570,6 +572,7 @@ int main(int argc, char **argv)
         			// Il faut connaître le nombre de moves à recevoir
         			MPI_Get_count(&status, MPI_INT, &count);
         			//Receive des moves
+              printf("#%d Je reçois %d moves \n",rang, count);
         			move = (move_t*)malloc(count*sizeof(move_t));
         			MPI_Recv(&move, count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
               printf("#%d j'ai reçu les moves de ROOT \n",rang);
@@ -672,9 +675,9 @@ int main(int argc, char **argv)
                   if(indice >= indice_fin-1)
                     break;
                   play_move(&root_proc, move[indice], &child);
-
-                  evaluate(&child, &child_result);
                   printf("#%d test milieu calcul après evaluate\n", rang);
+                  evaluate(&child, &child_result);
+                  
                   int child_score = -child_result.score;
 
                   if (child_score > result.score) {
