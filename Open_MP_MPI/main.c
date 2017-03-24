@@ -243,8 +243,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       {
         // Un probe pour connaiître la nature du message à recevoir
 
-        MPI_Probe(source, tag, MPI_COMM_WORLD, &status);
-
+        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        tag = status.MPI_TAG; 
         // Receive d'un resultat de sous arbre
         if(tag == TAG_RESULT){
           MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
@@ -534,7 +534,7 @@ int main(int argc, char **argv)
         	while(fini)
         	{
         		// Probe pour connaître la nature du receive
-        		MPI_Probe(source, MPI_ANY_SOURCE, MPI_COMM_WORLD, &status);
+        		MPI_Probe(MPI_ANY_, MPI_ANY_SOURCE, MPI_COMM_WORLD, &status);
             tag = status.MPI_TAG;
         		printf("#%d Je viens de recevoir un signal\n",rang);
   	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
@@ -576,7 +576,7 @@ int main(int argc, char **argv)
               move = (move_t*)malloc(count*sizeof(move_t));
               MPI_Recv(&move, count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
               // recoit l'arbre
-              MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_INIT, MPI_COMM_WORLD, &status);
+              MPI_Recv(&root_proc, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
               nb_elem = 1;
               go = 1;      
              }
