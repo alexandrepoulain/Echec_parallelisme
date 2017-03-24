@@ -15,7 +15,7 @@ mpi 4p
 13.91s
 
 
-open task
+open task 2c
 25.77s
 
 
