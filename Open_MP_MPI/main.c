@@ -696,7 +696,8 @@ int main(int argc, char **argv)
                   }
                 }
                 printf("#%d Fini le calcul\n", rang);
-                #pragma omp critical{
+                #pragma omp critical
+                {
                   over = 1;
                   go = 0;
                 }
@@ -708,7 +709,7 @@ int main(int argc, char **argv)
       MPI_Finalize();
     }
     
-
+  }
       
     
   return 0;
