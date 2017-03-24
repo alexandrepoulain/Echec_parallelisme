@@ -184,9 +184,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   //  Chaque processus doit commencer avec un job
   #pragma omp parallel sections
   {
-     
+     printf("On ouvre les sections paralleles pour le maitr\n");
     #pragma omp section
     {
+
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
       int reste = n_moves;
