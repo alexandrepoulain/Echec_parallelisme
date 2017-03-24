@@ -653,9 +653,10 @@ int main(int argc, char **argv)
               #pragma omp critical
               temp_go = go;
               if(temp_go == 1){
-                printf("#%d commence le calcul \n", rang);
+                
                 tree_t child;
                 result_t child_result;
+                printf("#%d commence le calcul \n", rang);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
                   if(indice >= indice_fin-1)
