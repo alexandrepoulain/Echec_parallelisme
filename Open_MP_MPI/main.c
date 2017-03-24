@@ -546,7 +546,7 @@ int main(int argc, char **argv)
       /*** PARTIE PARTAGE ***/
       tree_t root_proc; 
       move_t* move;
-      int fini=1, source, go = 0, over, attente;
+      int fini=1, source, go = 0, over, attente=0;
       int count, indice, nb_elem, indice_fin;
       result_t result;
       printf("#%d Au rapport\n", rang);
@@ -696,8 +696,10 @@ int main(int argc, char **argv)
                   }
                 }
                 printf("#%d Fini le calcul\n", rang);
-                over = 1;
-                go = 0;
+                #pragma omp crtical{
+                  over = 1;
+                  go = 0;
+                }
               }
             }
           }
