@@ -204,8 +204,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       for (int i = 1; i < nb_regions ; i++) {
         // SALE si on est arrivé au max du nombre de processus on arrête 
         // tant que le reste eest pas égal à 0 on rajoute un élément au message
-        printf("#ROOT nb_regions = %d\n", nb_regions);
-	if (reste!=0){
+        printf("#ROOT indice = %i\n", i);
+	      if (reste!=0){
           move_t send_moves[nb_elem+1];
           reste--;
           // on remplit le tableau de moves à envoyer
@@ -234,7 +234,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
         }
-	printf("#ROOT fin initialisation\n");	
+	     printf("#ROOT fin initialisation\n");	
       }
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
