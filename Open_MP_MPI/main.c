@@ -608,6 +608,7 @@ int main(int argc, char **argv)
               MPI_Get_count(&status, MPI_INT, &count);
               move = (move_t*)malloc(count*sizeof(move_t));
               MPI_Recv(&move, count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
+              printf("#%d move[0] = %d\n",rang,move[0]);
               // recoit l'arbre
               MPI_Recv(&root_proc, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
               nb_elem = 1;
