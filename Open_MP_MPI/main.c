@@ -585,7 +585,7 @@ int main(int argc, char **argv)
               nb_elem = 1;
               go = 1;      
              }
-              if(tag = TAG_RESULT){
+              if(tag == TAG_RESULT){
                 printf("#%d reçoit un resultat \n", rang);
                 // On la reçoit et on la traite
                 result_t new_child_result;
