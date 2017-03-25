@@ -402,7 +402,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               break;
             printf("#ROOT je calcul %d \n", root_chain.moves[indice_calcul]);
             play_move(&root_chain.plateau, root_chain.moves[indice_calcul], &root_chain.chain[indice_calcul]->plateau);
-
+            printf("#ROOT j'ai joué le move calcul %d \n", root_chain.moves[indice_calcul]);
             evaluate(&root_chain);
 
             int child_score = -root_chain.chain[indice_calcul]->result.score;
