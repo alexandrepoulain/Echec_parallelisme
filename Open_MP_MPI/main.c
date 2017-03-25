@@ -456,7 +456,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               temp_fin = fini;
             }
           }
-          
+
         
         }
       }
@@ -481,8 +481,10 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, in
     printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
     print_pv(T, result);
 
-    if (DEFINITIVE(result->score))
+    if (DEFINITIVE(result->score)){
+      printf("#ROOT sort de decide\n");
       break;
+    }
   }
 }
 
