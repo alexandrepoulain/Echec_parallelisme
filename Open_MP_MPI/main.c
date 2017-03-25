@@ -663,6 +663,7 @@ int main(int argc, char **argv)
                       attente = 1;
                     }
                     else{
+                      printf("#%d je transmet le jeton de calcul de %d à %d \n", rang, envoyeur, rang+1);
                       // On transmet le jeton
                       MPI_Send(&envoyeur, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
