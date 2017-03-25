@@ -88,6 +88,21 @@ void evaluate(chained_t* root_chain)
   }
 
 }
+
+void free_chain(chained_t* root)
+{
+  if(root->n_moves)
+  {
+    for(int i = 0; i < root->n_moves; i++)
+    {
+      free_chain(root->chain[i]);
+    }
+  }
+  free(root);
+}
+
+
+
 /* Fonction evaluate root qui sera appeler seulement par le processus root */
 void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
 {
@@ -397,7 +412,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           printf("#ROOT je commence le calcul\n");
           root_chain.chain = malloc(nb_elem*sizeof(chained_t*));
           // En gros sur chaque move on envoie evaluate 
-          for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) {
+          for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
+          {
             root_chain.chain[indice_calcul] = malloc(sizeof(chained_t));
             // Si on est arrivé au bout: en cas de raccourcissement
             if(indice_calcul > indice_fin-1)
@@ -409,7 +425,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             printf("#ROOT je sors de evaluate pour le move %d \n", root_chain.moves[indice_calcul]);
             int child_score = -root_chain.chain[indice_calcul]->result.score;
 
-            if (child_score > root_chain.result.score) {
+            if (child_score > root_chain.result.score) 
+            {
              root_chain.result.score = child_score;
              root_chain.result.best_move = root_chain.moves[indice_calcul];
              root_chain.result.pv_length = root_chain.chain[indice_calcul]->result.pv_length + 1;
@@ -460,8 +477,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
               temp_fin = fini;
             }
-            */
+            
           }
+          */
           #pragma omp critical
           {
             over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
@@ -471,8 +489,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         }
       }
     }
-      printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
+      
   }
+  printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
+
+  free_chain(&root_chain);
+}
+
 
   
 
