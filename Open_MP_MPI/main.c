@@ -569,10 +569,11 @@ int main(int argc, char **argv)
               {
                 printf("#%d essaye d'envoyer un result \n", rang);
                 // envoit du result
-                MPI_Send(&result, 1, mpi_result_t, demandeur, tag, MPI_COMM_WORLD);
+                MPI_Send(&result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
                 // envoit du jeton de calcul
                 int moi = rang; 
                 MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                #pragma omp critical
                 over = 0;
               }
         		// Probe pour connaître la nature du receive (NON BLOQUANT)
@@ -647,8 +648,9 @@ int main(int argc, char **argv)
                 }
                 //Si on reçoit un jeton de calcul
                 if(tag == TAG_JETON_CALCUL){
-                  printf("#%d reçoit un jeton de calcul \n", rang);
+                  
                   envoyeur = status.MPI_SOURCE;
+                  printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
                   // on teste savoir si ce n'estas notre propre jeton de calcul
                   if(envoyeur != rang){
                   // On test où on en est
