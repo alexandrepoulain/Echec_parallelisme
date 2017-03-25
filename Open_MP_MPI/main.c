@@ -774,7 +774,7 @@ int main(int argc, char **argv)
               if(temp_go == 1){
                 #pragma omp critical
                 temp_nb_elem = nb_elem;
-                root_chain.chain = malloc(temp_nb_elem*sizeof(chained_t**));
+                root_chain.chain = malloc(root_chain.n_moves*sizeof(chained_t**));
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
@@ -783,7 +783,7 @@ int main(int argc, char **argv)
                   if(indice > indice_fin-1)
                     break;
                   printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
-                  play_move(&root_chain.plateau, root_chain.moves[indice], &root_chain.chain[indice]->plateau);
+                  play_move(&root_chain.plateau, root_chain.moves[indice], &((root_chain.chain[indice])->plateau));
                   printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[indice]);
                   evaluate(root_chain.chain[indice]);
                   printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[indice]);
