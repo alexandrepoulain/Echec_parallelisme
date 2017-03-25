@@ -401,6 +401,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             // Si on est arrivé au bout: en cas de raccourcissement
             if(indice_calcul > indice_fin-1)
               break;
+            printf("#ROOT je calcul %d \n", moves[indice_calcul]);
             play_move(T, moves[indice_calcul], &child);
 
             evaluate(&child, &child_result);
