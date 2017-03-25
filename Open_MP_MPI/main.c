@@ -783,7 +783,7 @@ int main(int argc, char **argv)
                   printf("#%d test calcul avant evaluate %d\n", rang, move[indice]);
                   play_move(&root_chain.plateau, root_chain.moves[indice], &root_chain.chain[indice]->plateau);
                   
-                  evaluate(&root_chain);
+                  evaluate(root_chain.chain[indice]);
                   
                   int child_score = -root_chain.chain[indice]->result.score;
 
