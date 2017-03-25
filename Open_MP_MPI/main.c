@@ -138,7 +138,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   
   chained_t root_chain;
   root_chain.moves = malloc(MAX_MOVES*sizeof(move_t));
-printf("#ROOT construction de la chaine\n");
+
   root_chain.result.score = -MAX_SCORE - 1;
   root_chain.result.pv_length = 0;
 
@@ -149,7 +149,7 @@ printf("#ROOT construction de la chaine\n");
     return;
 
   compute_attack_squares(&root_chain.plateau);
-
+  printf("#ROOT construction de la chaine\n");
         /* profondeur max atteinte ? si oui, évaluation heuristique */
   if (root_chain.plateau.depth == 0) {
     root_chain.result.score = (2 * root_chain.plateau.side - 1) * heuristic_evaluation(&root_chain.plateau);
