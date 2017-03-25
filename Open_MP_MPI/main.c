@@ -591,9 +591,11 @@ int main(int argc, char **argv)
                 printf("#%d essaye d'envoyer un result \n", rang);
                 // envoit du result
                 MPI_Send(&result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
+                /*
                 // envoit du jeton de calcul
                 int moi = rang; 
                 MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                */
                 #pragma omp critical
                 over = 0;
               }
