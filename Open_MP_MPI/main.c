@@ -379,7 +379,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             }
 
           }
-          printf("#ROOT j'ai fini la première partie du calcul");
+          printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
           termine_premiere_partie = 1;
@@ -585,9 +585,8 @@ int main(int argc, char **argv)
               tag = status.MPI_TAG;
           		//printf("#%d Je viens de recevoir un signal\n",rang);
     	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
-          		if(tag == TAG_INIT && ne_pas_rentrer == 0)
+          		if(tag == TAG_INIT)
           		{
-                ne_pas_rentrer = 1;
   		          printf("#%d je reçois de ROOT \n",rang);
           			// Rceive tree
           			MPI_Recv(&root_proc, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
