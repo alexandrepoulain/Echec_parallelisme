@@ -778,15 +778,15 @@ int main(int argc, char **argv)
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
-                  printf("COUCOU\n");
+                  
                   root_chain.chain[indice] = malloc(sizeof(chained_t));
                   if(indice > indice_fin-1)
                     break;
                   printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
                   play_move(&root_chain.plateau, root_chain.moves[indice], &root_chain.chain[indice]->plateau);
-                  
+                  printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[indice]);
                   evaluate(root_chain.chain[indice]);
-                  
+                  printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[indice]);
                   int child_score = -root_chain.chain[indice]->result.score;
 
                   if (child_score > root_chain.chain[indice]->result.score) {
