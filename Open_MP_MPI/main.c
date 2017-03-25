@@ -674,7 +674,7 @@ int main(int argc, char **argv)
             			root_chain.moves = malloc(count*sizeof(move_t));
             			MPI_Recv(&root_chain.moves[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                   // construction de la root_chain
-                  root_chain.chain = malloc(count*sizeof(chained_t**));
+                  
                   root_chain.n_moves = count;
                 }
                 printf("#%d j'ai reçu les moves de ROOT \n",rang);
@@ -774,6 +774,7 @@ int main(int argc, char **argv)
               if(temp_go == 1){
                 #pragma omp critical
                 temp_nb_elem = nb_elem;
+                root_chain.chain = malloc(count*sizeof(chained_t**));
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
