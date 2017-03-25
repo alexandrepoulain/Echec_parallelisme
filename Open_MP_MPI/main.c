@@ -242,6 +242,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 	     
        
       }
+      // On retire la région dont le maître s'occupe
+      nb_regions --; 
       printf("#ROOT fin initialisation\n"); 
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
