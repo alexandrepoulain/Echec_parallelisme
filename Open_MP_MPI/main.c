@@ -244,51 +244,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       }
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
-      
+      int flag;
       while(fini)
       {
         // Un probe pour connaiître la nature du message à recevoir
-        int flag;
-        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-        tag = status.MPI_TAG; 
-        // Receive d'un resultat de sous arbre
-        if(tag == TAG_RESULT){
-          
-          MPI_Recv(&child_result, 1, mpi_result_t, status.MPI_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
-          nb_regions--;
-          int child_score = -child_result.score;
-          if (child_score > result->score){
-            result->score = child_score;
-            // on recupere le move correspondant en utilisant le tableau indice
-            result->best_move = child_result.best_move;
-            result->pv_length = child_result.pv_length + 1;
-            for(int j = 0; j < child_result.pv_length; j++)
-              result->PV[j+1] = child_result.PV[j];
-            result->PV[0] = child_result.best_move;
-          }
-          T->alpha = MAX(T->alpha, child_score);
-          // Si toutes les régions ont répondu on arrête
-          if(nb_regions == 0)
-            #pragma omp critical
-            fini = 0;
-          printf("#ROOT bien reçu et traité %d\n", status.MPI_SOURCE);
-        }
-
-        // Si on reçoit une demande de calcul en réponse à un jeton
-        if(tag == TAG_DEMANDE){
-          // On traite la demande
-          demandeur = status.MPI_SOURCE;
-          // On reçoit les moves
-          MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status); 
-          // Récupération du plateau 
-          MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status);
-          #pragma omp critical
-          nb_elem_demande=1;
-          // On signale au tread de calcul qu'il peux y aller
-          #pragma omp critical
-          over = 0;
-        }
-
         // si le thread de calcul a fini on envoit le jeton de calcul
         if(over == 1){
           // c'est un anneau donc on envoit au process suivant: ici 1
@@ -308,34 +267,78 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           new_over = 0;
         }
 
-        // Si le thread reçoit un jeton de calcul
-        // On va regarder où le processus de calcul en est et peut-être lui prendre une partie de son calcul
-        if(tag == TAG_JETON_CALCUL){
-          // on recupere l'envoyeur
-          int envoyeur;
-          MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,tag,MPI_COMM_WORLD, &status);
-          // on teste savoir si ce n'estas notre propre jeton de calcul
-          if(envoyeur != rang){
-            // On teste savoir si on est dans la première partie du calcul ou pas
-            if(!termine_premiere_partie){
-              // On teste si il y a besoin d'envoyer du calcul
-              if(indice_calcul+2 < nb_elem){
-                indice_fin--;
-                MPI_Send(&moves[nb_elem-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
-                MPI_Send(&T,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
-                // On précise qu'une nouvelle région vient d'être crée
-                nb_regions++;
+        
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+        if (flag == 1){
+          tag = status.MPI_TAG; 
+          // Receive d'un resultat de sous arbre
+          if(tag == TAG_RESULT){
+            
+            MPI_Recv(&child_result, 1, mpi_result_t, status.MPI_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
+            nb_regions--;
+            int child_score = -child_result.score;
+            if (child_score > result->score){
+              result->score = child_score;
+              // on recupere le move correspondant en utilisant le tableau indice
+              result->best_move = child_result.best_move;
+              result->pv_length = child_result.pv_length + 1;
+              for(int j = 0; j < child_result.pv_length; j++)
+                result->PV[j+1] = child_result.PV[j];
+              result->PV[0] = child_result.best_move;
+            }
+            T->alpha = MAX(T->alpha, child_score);
+            // Si toutes les régions ont répondu on arrête
+            if(nb_regions == 0)
+              #pragma omp critical
+              fini = 0;
+            printf("#ROOT bien reçu et traité %d\n", status.MPI_SOURCE);
+          }
+
+          // Si on reçoit une demande de calcul en réponse à un jeton
+          if(tag == TAG_DEMANDE){
+            // On traite la demande
+            demandeur = status.MPI_SOURCE;
+            // On reçoit les moves
+            MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status); 
+            // Récupération du plateau 
+            MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status);
+            #pragma omp critical
+            nb_elem_demande=1;
+            // On signale au tread de calcul qu'il peux y aller
+            #pragma omp critical
+            over = 0;
+          }
+
+          
+          // Si le thread reçoit un jeton de calcul
+          // On va regarder où le processus de calcul en est et peut-être lui prendre une partie de son calcul
+          if(tag == TAG_JETON_CALCUL){
+            // on recupere l'envoyeur
+            int envoyeur;
+            MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,tag,MPI_COMM_WORLD, &status);
+            // on teste savoir si ce n'estas notre propre jeton de calcul
+            if(envoyeur != rang){
+              // On teste savoir si on est dans la première partie du calcul ou pas
+              if(!termine_premiere_partie){
+                // On teste si il y a besoin d'envoyer du calcul
+                if(indice_calcul+2 < nb_elem){
+                  indice_fin--;
+                  MPI_Send(&moves[nb_elem-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                  MPI_Send(&T,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                  // On précise qu'une nouvelle région vient d'être crée
+                  nb_regions++;
+                }
+                // sinon on transmet le jeton de calcul
+                else{
+                  MPI_Send(&envoyeur,1,MPI_INT,(rang+1), TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                }
               }
-              // sinon on transmet le jeton de calcul
+              // Sinon on est déjà dans un calcul demandé par un autre processus
               else{
+                // Pour l'instant on fait rien mais bientot il pourra aider le calcul aussi ici
+                // Du coup on transmet juste
                 MPI_Send(&envoyeur,1,MPI_INT,(rang+1), TAG_JETON_CALCUL, MPI_COMM_WORLD);
               }
-            }
-            // Sinon on est déjà dans un calcul demandé par un autre processus
-            else{
-              // Pour l'instant on fait rien mais bientot il pourra aider le calcul aussi ici
-              // Du coup on transmet juste
-              MPI_Send(&envoyeur,1,MPI_INT,(rang+1), TAG_JETON_CALCUL, MPI_COMM_WORLD);
             }
           }
         }
@@ -556,114 +559,117 @@ int main(int argc, char **argv)
       {
       	#pragma omp section
       	{	
-        	int demandeur, envoyeur, ne_pas_rentrer = 0;;
+        	int demandeur, envoyeur, ne_pas_rentrer = 0, flag;
         	while(fini)
         	{
-        		// Probe pour connaître la nature du receive (NON BLOQUANT)
-            int flag;
-        		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-            //printf("#%d flag = %d\n",rang,flag);
-            tag = status.MPI_TAG;
-        		//printf("#%d Je viens de recevoir un signal\n",rang);
-  	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
-        		if(tag == TAG_INIT && ne_pas_rentrer == 0)
-        		{
-              ne_pas_rentrer = 1;
-		          printf("#%d je reçois de ROOT \n",rang);
-        			// Rceive tree
-        			MPI_Recv(&root_proc, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
-              printf("#%d j'ai reçu l'arbre de ROOT \n",rang);
-        			// Receive les moves
-        			// Il faut connaître le nombre de moves à recevoir
-              MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
-        			MPI_Get_count(&status, MPI_INT, &count);
-        			//Receive des moves
-              printf("#%d Je reçois %d moves \n",rang, count);
-              #pragma omp critical
-              {
-          			move = malloc(count*sizeof(move_t));
-          			MPI_Recv(&move[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
-              }
-              printf("#%d j'ai reçu les moves de ROOT \n",rang);
-
-              // on lance le calcul 
-              nb_elem = count;
-              indice_fin =nb_elem;
-              #pragma omp critical
-              go = 1;
-              // on stocke à qui on doit renvoyer
-              demandeur = 0;
-            }
             // Si le thread de calcul a fini on envoit le result au demandeur
-            if(over == 1 && attente == 0)
-            {
-              printf("#%d essaye d'envoyer un result \n", rang);
-              // envoit du result
-              MPI_Send(&result, 1, mpi_result_t, demandeur, tag, MPI_COMM_WORLD);
-              // envoit du jeton de calcul
-              int moi = rang; 
-              MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-              over = 0;
-            }
-            // Si on reçoit une demande
-            if(tag == TAG_DEMANDE)
-            {
-              printf("#%d reçoit une demande  \n", rang);
-              // on recupre le demandeur
-              demandeur = status.MPI_SOURCE;
-              // on reçoit le move
-
-              MPI_Get_count(&status, MPI_INT, &count);
-              move = (move_t*)malloc(count*sizeof(move_t));
-              MPI_Recv(&move[0], count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
-              // recoit l'arbre
-              MPI_Recv(&root_proc, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
-              nb_elem = 1;
-              go = 1;      
-             }
-              if(tag == TAG_RESULT){
-                printf("#%d reçoit un resultat \n", rang);
-                // On la reçoit et on la traite
-                result_t new_child_result;
-                MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-                int child_score = -new_child_result.score;
-                if (child_score > result.score) {
-                 result.score = child_score;
-                 result.best_move = new_child_result.best_move;
-                 result.pv_length = new_child_result.pv_length + 1;
-                 for(int j = 0; j < new_child_result.pv_length; j++)
-                  result.PV[j+1] = new_child_result.PV[j];
-                 result.PV[0] = new_child_result.best_move;
-                }
-                // On attend plus de résultat
-                attente = 0;
+              if(over == 1 && attente == 0)
+              {
+                printf("#%d essaye d'envoyer un result \n", rang);
+                // envoit du result
+                MPI_Send(&result, 1, mpi_result_t, demandeur, tag, MPI_COMM_WORLD);
+                // envoit du jeton de calcul
+                int moi = rang; 
+                MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                over = 0;
               }
-              //Si on reçoit un jeton de calcul
-              if(tag == TAG_JETON_CALCUL){
-                printf("#%d reçoit un jeton de calcul \n", rang);
-                envoyeur = status.MPI_SOURCE;
-                // on teste savoir si ce n'estas notre propre jeton de calcul
-                if(envoyeur != rang){
-                // On test où on en est
-                  if(indice+2 < nb_elem){
-                    indice_fin--;
-                    MPI_Send(&move[nb_elem-1],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    MPI_Send(&root_proc,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    // On attend la réponse pour pas la perdre
-                    attente = 1;
-                  }
-                  else{
-                    // On transmet le jeton
-                    MPI_Send(&envoyeur, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-                  }
+        		// Probe pour connaître la nature du receive (NON BLOQUANT)
+            
+        		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            if(flag == 1){
+              //printf("#%d flag = %d\n",rang,flag);
+              tag = status.MPI_TAG;
+          		//printf("#%d Je viens de recevoir un signal\n",rang);
+    	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
+          		if(tag == TAG_INIT && ne_pas_rentrer == 0)
+          		{
+                ne_pas_rentrer = 1;
+  		          printf("#%d je reçois de ROOT \n",rang);
+          			// Rceive tree
+          			MPI_Recv(&root_proc, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
+                printf("#%d j'ai reçu l'arbre de ROOT \n",rang);
+          			// Receive les moves
+          			// Il faut connaître le nombre de moves à recevoir
+                MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
+          			MPI_Get_count(&status, MPI_INT, &count);
+          			//Receive des moves
+                printf("#%d Je reçois %d moves \n",rang, count);
+                #pragma omp critical
+                {
+            			move = malloc(count*sizeof(move_t));
+            			MPI_Recv(&move[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                 }
+                printf("#%d j'ai reçu les moves de ROOT \n",rang);
 
-
-
+                // on lance le calcul 
+                nb_elem = count;
+                indice_fin =nb_elem;
+                #pragma omp critical
+                go = 1;
+                // on stocke à qui on doit renvoyer
+                demandeur = 0;
               }
-              // Si on a le signal de fin
-              if(tag == TAG_END)
-                fini = 0;
+              
+              // Si on reçoit une demande
+              if(tag == TAG_DEMANDE)
+              {
+                printf("#%d reçoit une demande  \n", rang);
+                // on recupre le demandeur
+                demandeur = status.MPI_SOURCE;
+                // on reçoit le move
+
+                MPI_Get_count(&status, MPI_INT, &count);
+                move = (move_t*)malloc(count*sizeof(move_t));
+                MPI_Recv(&move[0], count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
+                // recoit l'arbre
+                MPI_Recv(&root_proc, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
+                nb_elem = 1;
+                go = 1;      
+               }
+                if(tag == TAG_RESULT){
+                  printf("#%d reçoit un resultat \n", rang);
+                  // On la reçoit et on la traite
+                  result_t new_child_result;
+                  MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
+                  int child_score = -new_child_result.score;
+                  if (child_score > result.score) {
+                   result.score = child_score;
+                   result.best_move = new_child_result.best_move;
+                   result.pv_length = new_child_result.pv_length + 1;
+                   for(int j = 0; j < new_child_result.pv_length; j++)
+                    result.PV[j+1] = new_child_result.PV[j];
+                   result.PV[0] = new_child_result.best_move;
+                  }
+                  // On attend plus de résultat
+                  attente = 0;
+                }
+                //Si on reçoit un jeton de calcul
+                if(tag == TAG_JETON_CALCUL){
+                  printf("#%d reçoit un jeton de calcul \n", rang);
+                  envoyeur = status.MPI_SOURCE;
+                  // on teste savoir si ce n'estas notre propre jeton de calcul
+                  if(envoyeur != rang){
+                  // On test où on en est
+                    if(indice+2 < nb_elem){
+                      indice_fin--;
+                      MPI_Send(&move[nb_elem-1],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                      MPI_Send(&root_proc,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                      // On attend la réponse pour pas la perdre
+                      attente = 1;
+                    }
+                    else{
+                      // On transmet le jeton
+                      MPI_Send(&envoyeur, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                    }
+                  }
+
+
+
+                }
+                // Si on a le signal de fin
+                if(tag == TAG_END)
+                  fini = 0;
+              }
             }
           
           }
