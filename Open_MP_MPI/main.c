@@ -256,6 +256,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // Ainsi tout le monde pourra le distribuer en connaisant qui est l'envoyeur
           int rang_envoyeur = 0;
           MPI_Send(&rang_envoyeur,1, MPI_INT, 1,TAG_JETON_CALCUL, MPI_COMM_WORLD);
+          over = 0;
         }
         // Si le thread de calcul a fini sa demande
         if(new_over == 1){
