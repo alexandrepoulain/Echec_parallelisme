@@ -248,6 +248,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       int flag;
       while(fini)
       {
+        /*
         // Un probe pour connaiître la nature du message à recevoir
         // si le thread de calcul a fini on envoit le jeton de calcul
         if(over == 1){
@@ -272,6 +273,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           new_over = 0;
           printf("#ROOT J'ai envoyé le résultat pour %d\n", demandeur);
         }
+        */
 
         
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
@@ -301,7 +303,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               fini = 0;
             printf("#ROOT bien reçu et traité %d\n", status.MPI_SOURCE);
           }
-
+/*
           // Si on reçoit une demande de calcul en réponse à un jeton
           if(tag == TAG_DEMANDE){
 
@@ -352,6 +354,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               }
             }
           }
+          */
         }
       }
     }
@@ -627,7 +630,7 @@ int main(int argc, char **argv)
                 // on stocke à qui on doit renvoyer
                 demandeur = 0;
               }
-              
+              /*
               // Si on reçoit une demande
               if(tag == TAG_DEMANDE)
               {
@@ -644,6 +647,8 @@ int main(int argc, char **argv)
                 nb_elem = 1;
                 go = 1;      
                }
+               */
+              /*
                 if(tag == TAG_RESULT){
                   printf("#%d reçoit un resultat \n", rang);
                   // On la reçoit et on la traite
@@ -661,6 +666,8 @@ int main(int argc, char **argv)
                   // On attend plus de résultat
                   attente = 0;
                 }
+                */
+              /*
                 //Si on reçoit un jeton de calcul
                 if(tag == TAG_JETON_CALCUL){
                   
@@ -686,7 +693,9 @@ int main(int argc, char **argv)
 
 
 
+
                 }
+                */
                 // Si on a le signal de fin
                 if(tag == TAG_END)
                   fini = 0;
