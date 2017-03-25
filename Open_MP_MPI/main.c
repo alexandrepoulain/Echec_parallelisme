@@ -782,7 +782,7 @@ int main(int argc, char **argv)
                   root_chain.chain[indice] = malloc(sizeof(chained_t));
                   if(indice > indice_fin-1)
                     break;
-                  printf("#%d test calcul avant evaluate %d\n", rang, move[indice]);
+                  printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
                   play_move(&root_chain.plateau, root_chain.moves[indice], &root_chain.chain[indice]->plateau);
                   
                   evaluate(root_chain.chain[indice]);
