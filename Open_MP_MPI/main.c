@@ -767,7 +767,7 @@ int main(int argc, char **argv)
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
-                  if(indice >= indice_fin-1)
+                  if(indice > indice_fin-1)
                     break;
                   printf("#%d test calcul avant evaluate %d\n", rang, move[indice]);
                   play_move(&root_proc, move[indice], &child);
