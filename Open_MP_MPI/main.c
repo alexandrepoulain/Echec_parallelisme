@@ -399,7 +399,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // En gros sur chaque move on envoie evaluate 
           for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) {
             // Si on est arrivé au bout: en cas de raccourcissement
-            if(indice_calcul >= indice_fin-1)
+            if(indice_calcul > indice_fin-1)
               break;
             play_move(T, moves[indice_calcul], &child);
 
