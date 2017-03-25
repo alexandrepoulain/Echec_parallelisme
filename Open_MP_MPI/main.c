@@ -374,6 +374,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         }
         #pragma omp critical
         temp_fin = fini;
+        printf("#ROOT fini = %d\n", temp_fin);
       }
     }
       
