@@ -666,11 +666,12 @@ int main(int argc, char **argv)
                 printf("#%d j'ai reçu les moves de ROOT \n",rang);
 
                 // on lance le calcul 
-                nb_elem = count;
-                indice_fin =nb_elem;
                 #pragma omp critical
                 {
+                  nb_elem = count;
+                  indice_fin =nb_elem;
                   go = 1;
+
                   // on stocke à qui on doit renvoyer
                   demandeur = 0;
                 }
@@ -751,7 +752,7 @@ int main(int argc, char **argv)
           /*** THREAD CALCUL ***/
           #pragma omp section
           {
-            int temp_go;
+            int temp_go, temp_nb_elem;
             while(fini)
             {
               #pragma omp critical
@@ -761,6 +762,8 @@ int main(int argc, char **argv)
                 tree_t child;
                 result_t child_result;
                 printf("#%d commence le calcul \n", rang);
+                #pragma omp critical
+                temp_nb_elem = nb_elem;
                 for(indice = 0; indice < nb_elem; indice++)
                 {
                   if(indice >= indice_fin-1)
