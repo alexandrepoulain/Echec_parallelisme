@@ -98,6 +98,8 @@ void free_chain(chained_t* root)
       free_chain(root->chain[i]);
     }
   }
+  free(&root->plateau);
+  free(&root->result);
   free(root);
 }
 
