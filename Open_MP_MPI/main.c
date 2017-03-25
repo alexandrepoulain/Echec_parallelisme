@@ -135,10 +135,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   int* count;
 
   node_searched++;
-  printf("#ROOT construction de la chaine\n");
+  
   chained_t root_chain;
   root_chain.moves = malloc(MAX_MOVES*sizeof(move_t));
-
+printf("#ROOT construction de la chaine\n");
   root_chain.result.score = -MAX_SCORE - 1;
   root_chain.result.pv_length = 0;
 
