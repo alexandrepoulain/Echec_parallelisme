@@ -254,6 +254,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // c'est un anneau donc on envoit au process suivant: ici 1
           // On place dans l'élément envoyé le rang
           // Ainsi tout le monde pourra le distribuer en connaisant qui est l'envoyeur
+          printf("#ROOT j'envoie mon jeton de calcul\n");
           int rang_envoyeur = 0;
           MPI_Send(&rang_envoyeur,1, MPI_INT, 1,TAG_JETON_CALCUL, MPI_COMM_WORLD);
           over = 0;
