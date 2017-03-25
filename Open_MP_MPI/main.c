@@ -418,6 +418,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
              root_chain.result.PV[0] = root_chain.moves[indice_calcul];
             }
 
+
           }
           #pragma omp critical 
           go = 0;
@@ -673,7 +674,7 @@ int main(int argc, char **argv)
             			root_chain.moves = malloc(count*sizeof(move_t));
             			MPI_Recv(&root_chain.moves[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                   // construction de la root_chain
-                  root_chain.chain = malloc(count*sizeof(chained_t*));
+                  root_chain.chain = malloc(count*sizeof(chained_t**));
                   root_chain.n_moves = count;
                 }
                 printf("#%d j'ai reçu les moves de ROOT \n",rang);
@@ -776,6 +777,7 @@ int main(int argc, char **argv)
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
+                  root_chain.chain[indice] = malloc(sizeof(chained_t));
                   if(indice > indice_fin-1)
                     break;
                   printf("#%d test calcul avant evaluate %d\n", rang, move[indice]);
