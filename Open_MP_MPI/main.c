@@ -257,7 +257,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
       int flag;
-      while(fini)
+      int temp_fin = 1;
+      while(temp_fin)
       {
         /*
         // Un probe pour connaiître la nature du message à recevoir
@@ -371,6 +372,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           }
           */
         }
+        #pragma omp critical
+        temp_fin = fini;
       }
     }
       
