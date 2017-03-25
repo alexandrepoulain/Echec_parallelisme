@@ -774,7 +774,7 @@ int main(int argc, char **argv)
               if(temp_go == 1){
                 #pragma omp critical
                 temp_nb_elem = nb_elem;
-                root_chain.chain = malloc(count*sizeof(chained_t**));
+                root_chain.chain = malloc(temp_nb_elem*sizeof(chained_t**));
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
