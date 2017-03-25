@@ -302,6 +302,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             nb_regions--;
             int child_score = -child_result.score;
             if (child_score > result->score){
+              printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
               result->score = child_score;
               // on recupere le move correspondant en utilisant le tableau indice
               result->best_move = child_result.best_move;
