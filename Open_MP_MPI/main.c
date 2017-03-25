@@ -262,6 +262,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         }
         // Si le thread de calcul a fini sa demande
         if(new_over == 1){
+          printf("#ROOT J'ai le résultat pour %d\n", demandeur);
           // On envoit le result au demandeur
           MPI_Send(&new_result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
           // on va se placer en émission d'un jeton de calcul
@@ -269,6 +270,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           over = 1;
           #pragma omp critical
           new_over = 0;
+          printf("#ROOT J'ai envoyé le résultat pour %d\n", demandeur);
         }
 
         
@@ -302,8 +304,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
           // Si on reçoit une demande de calcul en réponse à un jeton
           if(tag == TAG_DEMANDE){
+
             // On traite la demande
             demandeur = status.MPI_SOURCE;
+            printf("#ROOT je reçoie une demande de %d", demandeur);
             // On reçoit les moves
             MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status); 
             // Récupération du plateau 
@@ -312,7 +316,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             nb_elem_demande=1;
             // On signale au tread de calcul qu'il peux y aller
             #pragma omp critical
-            over = 0;
+            go = 1;
+            printf("#ROOT j'ai lancé le calcul\n");
           }
 
           
