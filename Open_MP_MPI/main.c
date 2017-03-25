@@ -629,7 +629,8 @@ int main(int argc, char **argv)
                 // on lance le calcul 
                 nb_elem = count;
                 indice_fin =nb_elem;
-                #pragma omp critical{
+                #pragma omp critical
+                {
                   go = 1;
                   // on stocke à qui on doit renvoyer
                   demandeur = 0;
