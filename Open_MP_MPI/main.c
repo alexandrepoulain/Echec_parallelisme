@@ -450,7 +450,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
                 go = 0;
               }
             }
+            #pragma omp critical
+            {
+              over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
+              temp_fin = fini;
+            }
           }
+          
         
         }
       }
