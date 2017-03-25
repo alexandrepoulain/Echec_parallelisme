@@ -45,7 +45,7 @@ void evaluate(chained_t* root_chain)
   }
 
   root_chain->n_moves = generate_legal_moves(&root_chain->plateau, &root_chain->moves[0]);
-  root_chain->chain = malloc(root_chain->n_moves*sizeof(chained_t));
+  root_chain->chain = malloc(root_chain->n_moves*sizeof(chained_t**));
 
         /* absence de coups légaux : pat ou mat */
   if (root_chain->n_moves == 0) {
@@ -59,10 +59,12 @@ void evaluate(chained_t* root_chain)
         /* évalue récursivement les positions accessibles à partir d'ici */
   for (int i = 0; i < root_chain->n_moves; i++) 
   {
-
+    root_chain->chain[i] = malloc(sizeof(chained_t*));
+    chained_t new_chain;
+    *(root_chain->chain[i])= new_chain;
     play_move(&root_chain->plateau, root_chain->moves[i], &root_chain->chain[i]->plateau);
 
-    evaluate(root_chain);
+    evaluate(root_chain->chain[i]);
 
     int child_score = -root_chain->chain[i]->result.score;
 
