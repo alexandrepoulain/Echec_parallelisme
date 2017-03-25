@@ -269,7 +269,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
         
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-        if (flag == 1){
+        if (flag){
           tag = status.MPI_TAG; 
           // Receive d'un resultat de sous arbre
           if(tag == TAG_RESULT){
@@ -576,7 +576,7 @@ int main(int argc, char **argv)
         		// Probe pour connaître la nature du receive (NON BLOQUANT)
             
         		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-            if(flag == 1){
+            if(flag){
               //printf("#%d flag = %d\n",rang,flag);
               tag = status.MPI_TAG;
           		//printf("#%d Je viens de recevoir un signal\n",rang);
@@ -651,6 +651,7 @@ int main(int argc, char **argv)
                   if(envoyeur != rang){
                   // On test où on en est
                     if(indice+2 < nb_elem){
+                      printf("#%d envoit du calcul à %d \n", rang, envoyeur);
                       indice_fin--;
                       MPI_Send(&move[nb_elem-1],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                       MPI_Send(&root_proc,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
