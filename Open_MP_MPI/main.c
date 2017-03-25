@@ -309,9 +309,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             demandeur = status.MPI_SOURCE;
             printf("#ROOT je reçoie une demande de %d", demandeur);
             // On reçoit les moves
-            MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status); 
+            MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             // Récupération du plateau 
-            MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, tag, MPI_COMM_WORLD,&status);
+            MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
             #pragma omp critical
             nb_elem_demande=1;
             // On signale au tread de calcul qu'il peux y aller
@@ -326,7 +326,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           if(tag == TAG_JETON_CALCUL){
             // on recupere l'envoyeur
             int envoyeur;
-            MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,tag,MPI_COMM_WORLD, &status);
+            MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,TAG_JETON_CALCUL,MPI_COMM_WORLD, &status);
             // on teste savoir si ce n'estas notre propre jeton de calcul
             if(envoyeur != rang){
               // On teste savoir si on est dans la première partie du calcul ou pas
@@ -341,14 +341,14 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
                 }
                 // sinon on transmet le jeton de calcul
                 else{
-                  MPI_Send(&envoyeur,1,MPI_INT,(rang+1), TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                  MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                 }
               }
               // Sinon on est déjà dans un calcul demandé par un autre processus
               else{
                 // Pour l'instant on fait rien mais bientot il pourra aider le calcul aussi ici
                 // Du coup on transmet juste
-                MPI_Send(&envoyeur,1,MPI_INT,(rang+1), TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
               }
             }
           }
