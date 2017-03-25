@@ -57,7 +57,8 @@ void evaluate(tree_t * T, result_t *result)
     sort_moves(T, n_moves, moves);
 
         /* évalue récursivement les positions accessibles à partir d'ici */
-  for (int i = 0; i < n_moves; i++) {
+  for (int i = 0; i < n_moves; i++) 
+  {
     tree_t child;
     result_t child_result;
 
@@ -67,25 +68,27 @@ void evaluate(tree_t * T, result_t *result)
 
     int child_score = -child_result.score;
 
-    if (child_score > result->score) {
-     result->score = child_score;
-     result->best_move = moves[i];
-     result->pv_length = child_result.pv_length + 1;
-     for(int j = 0; j < child_result.pv_length; j++)
-      result->PV[j+1] = child_result.PV[j];
-    result->PV[0] = moves[i];
-  }
+    if (child_score > result->score) 
+    {
+      result->score = child_score;
+      result->best_move = moves[i];
+      result->pv_length = child_result.pv_length + 1;
+      for(int j = 0; j < child_result.pv_length; j++)
+        result->PV[j+1] = child_result.PV[j];
+      result->PV[0] = moves[i];
+    }
 
   if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     break;    
 
   T->alpha = MAX(T->alpha, child_score);
-}
 
-if (TRANSPOSITION_TABLE)
-  tt_store(T, result);
-}
 
+  if (TRANSPOSITION_TABLE)
+    tt_store(T, result);
+  }
+
+}
 /* Fonction evaluate root qui sera appeler seulement par le processus root */
 void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
 {
@@ -193,7 +196,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       int reste = n_moves;
       int source;
       int nb_regions, indice_move, demandeur, index = 0;
-      while (reste == n_moves){
+      while (reste == n_moves)
+      {
         reste = n_moves%(NP-index);
         nb_regions = NP-index;
         nb_elem = n_moves/(NP-index);
@@ -202,17 +206,20 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       indice_fin = nb_elem;
       // Processus 0 peut commencer
       #pragma omp critical
-       go = 1;
-      for (int i = 1; i < nb_regions ; i++) {
+      go = 1;
+      for (int i = 1; i < nb_regions ; i++) 
+      {
         // SALE si on est arrivé au max du nombre de processus on arrête 
         // tant que le reste eest pas égal à 0 on rajoute un élément au message
         printf("#ROOT indice = %i\n", i);
-	      if (reste!=0){
+	      if (reste!=0)
+        {
           move_t send_moves[nb_elem+1];
           #pragma omp critical
           reste--;
           // on remplit le tableau de moves à envoyer
-          for (int j=0; j<nb_elem+1; j++){
+          for (int j=0; j<nb_elem+1; j++)
+          {
             send_moves[j]=moves[nb_regions+j];
           }
           // on envoie au thread de comm du processus correspondant
@@ -223,12 +230,14 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           MPI_Send(&send_moves, nb_elem+1, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
         }
         // le reste est égal à 0
-        else{
+        else
+        {
           move_t send_moves[nb_elem];
           #pragma omp critical
           reste--;
           // on remplit le tableau de moves à envoyer
-          for (int j=0; j<nb_elem; j++){
+          for (int j=0; j<nb_elem; j++)
+          {
             send_moves[j]=moves[nb_regions+j];
           }
           // on envoie au thread de comm du processus correspondant
@@ -280,11 +289,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
         
-        if (flag){
+        if (flag)
+        {
           printf("#ROOT je reçois un message de %d, requête de type %d, avec le flag %d\n", status.MPI_SOURCE, status.MPI_TAG, flag);
           tag = status.MPI_TAG; 
           // Receive d'un resultat de sous arbre
-          if(tag == TAG_RESULT){
+          if(tag == TAG_RESULT)
+          {
             
             MPI_Recv(&child_result, 1, mpi_result_t, status.MPI_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
             nb_regions--;
@@ -301,8 +312,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             T->alpha = MAX(T->alpha, child_score);
             // Si toutes les régions ont répondu on arrête
             if(nb_regions == 0)
+            {
               #pragma omp critical
               fini = 0;
+            }
             printf("#ROOT bien reçu et traité %d --- il reste %d régions à venir\n", status.MPI_SOURCE, nb_regions);
           }
 /*
@@ -365,11 +378,17 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     /*** SECTION calcul première partie ***/
     #pragma omp section
     {
-      int temp_go;
-      while(1){
+      int temp_go, temp_fin = 1;
+      while(temp_fin)
+      {
         #pragma omp critical
-        temp_go = go;
-        if(temp_go){
+        {
+          temp_fin = fini;
+          temp_go = go;
+        }
+        
+        if(temp_go)
+        {
           printf("#ROOT je commence le calcul\n");
           // En gros sur chaque move on envoie evaluate 
           for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) {
@@ -399,14 +418,19 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           #pragma omp critical
           termine_premiere_partie = 1;
           #pragma omp critical
-          over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
+          {
+            over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
+            temp_fin = fini;
+          }
           // Ici on se met en attente du process de communication
           // On recupère et on traite les demandes
-          while(fini){
+          while(temp_fin)
+          {
             #pragma omp critical
             temp_go = go;
             // le process de calcul nous signale qu'on peux y aller
-            if (temp_go){
+            if (temp_go)
+            {
               for (indice_calcul = 0; indice_calcul < nb_elem_demande; indice_calcul++) {
 
                 play_move(&new_T, new_move, &new_child);
@@ -424,10 +448,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           }
         
         }
+      }
       
     }
   }
-}
+  printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
 }
 
 
