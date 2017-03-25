@@ -239,9 +239,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem);
           MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
         }
-	     printf("#ROOT fin initialisation\n");	
+	     
        
       }
+      printf("#ROOT fin initialisation\n"); 
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
       int flag;
@@ -269,6 +270,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
         
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+        printf("#ROOT je reçois un message de %d, requête de type %d, avec le flag %d\n", status.MPI_SOURCE, status.MPI_TAG, flag);
         if (flag){
           tag = status.MPI_TAG; 
           // Receive d'un resultat de sous arbre
