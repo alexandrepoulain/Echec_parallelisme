@@ -256,6 +256,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // Ainsi tout le monde pourra le distribuer en connaisant qui est l'envoyeur
           int rang_envoyeur = 0;
           MPI_Send(&rang_envoyeur,1, MPI_INT, 1,TAG_JETON_CALCUL, MPI_COMM_WORLD);
+          over = 0;
+          go = 1;
         }
         // Si le thread de calcul a fini sa demande
         if(new_over == 1){
@@ -379,6 +381,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             }
 
           }
+          #pragma omp critical 
+          go = 0;
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
@@ -388,8 +392,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // Ici on se met en attente du process de communication
           // On recupère et on traite les demandes
           while(fini){
+            #pragma omp critical
+            temp_go = go;
             // le process de calcul nous signale qu'on peux y aller
-            if (over == 0 && new_over == 0){
+            if (temp_go){
               for (indice_calcul = 0; indice_calcul < nb_elem_demande; indice_calcul++) {
 
                 play_move(&new_T, new_move, &new_child);
@@ -399,7 +405,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               }
               // On a fini le calcul
               #pragma omp critical
-              new_over = 1;
+              {
+                new_over = 1;
+                go = 0;
+              }
             }
           }
         
