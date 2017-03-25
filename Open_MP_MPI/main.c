@@ -761,9 +761,10 @@ int main(int argc, char **argv)
                 
                 tree_t child;
                 result_t child_result;
-                printf("#%d commence le calcul \n", rang);
+                
                 #pragma omp critical
                 temp_nb_elem = nb_elem;
+                printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
                   if(indice >= indice_fin-1)
