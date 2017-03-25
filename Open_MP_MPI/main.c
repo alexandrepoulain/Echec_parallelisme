@@ -95,13 +95,14 @@ void free_chain(chained_t* root)
 {
   if(root->n_moves)
   {
+    free(&root->plateau);
+    free(&root->result);
     for(int i = 0; i < root->n_moves; i++)
     {
       free_chain(root->chain[i]);
     }
   }
-  free(&root->plateau);
-  free(&root->result);
+  
   free(root);
 }
 
