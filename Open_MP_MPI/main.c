@@ -301,7 +301,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             if(nb_regions == 0)
               #pragma omp critical
               fini = 0;
-            printf("#ROOT bien reçu et traité %d\n", status.MPI_SOURCE);
+            printf("#ROOT bien reçu et traité %d --- il reste %d régions à venir\n", status.MPI_SOURCE, nb_regions);
           }
 /*
           // Si on reçoit une demande de calcul en réponse à un jeton
