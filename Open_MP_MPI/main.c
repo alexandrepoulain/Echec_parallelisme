@@ -91,22 +91,20 @@ void evaluate(chained_t* root_chain)
 
 }
 
-void free_chain(chained_t* root)
+void free_chain(chained_t** root, int n_elem)
 {
-  if(root->n_moves)
+  if(n_elem)
   {
-    printf("Tente de détruire \n");
-    free(&root->plateau);
-    printf("Plateau détruit \n");
-    free(&root->result);
     printf("résult détruit \n");
-    for(int i = 0; i < root->n_moves; i++)
+    for(int i = 0; i < n_elem; i++)
     {
-      free_chain(root->chain[i]);
+      free_chain(root[i]->chain, root[i]->n_moves);
+      free(root[i]->moves);
+      free(root[i]);
     }
   }
   
-  free(root);
+  
 }
 
 
@@ -500,7 +498,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       
   }
   printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
-
+  free_chain(root_chain.chain, root_chain.n_moves);
+  free(root_chain.moves);
   //free_chain(&root_chain);
 }
 
@@ -512,8 +511,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
 {
 	printf("#ROOT rentre dans decide\n");
-  int depth = 1;
-	//for (int depth = 1;; depth++) {
+	for (int depth = 1;; depth++) {
 		T->depth = depth;
 		T->height = 0;
 		T->alpha_start = T->alpha = -MAX_SCORE - 1;
@@ -526,9 +524,9 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, in
 
     if (DEFINITIVE(result->score)){
       printf("#ROOT sort de decide\n");
-      //break;
+      break;
     }
-  //}
+  }
 }
 
 int main(int argc, char **argv)
