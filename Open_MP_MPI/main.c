@@ -93,9 +93,10 @@ void evaluate(chained_t* root_chain)
 
 void free_chain(chained_t* root)
 {
+  printf("n_moves = %d \n", root->n_moves);
   if(root->n_moves && root->chain)
   {
-    printf("résult détruit \n");
+    
     for(int i = 0; i < root->n_moves; i++)
     {
       printf("Je plonge  \n");
