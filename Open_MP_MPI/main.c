@@ -98,7 +98,9 @@ void free_chain(chained_t** root, int n_elem)
     printf("résult détruit \n");
     for(int i = 0; i < n_elem; i++)
     {
+      printf("Je plonge  \n");
       free_chain(root[i]->chain, root[i]->n_moves);
+      printf("Je sors \n");
       free(root[i]->moves);
       free(root[i]);
     }
@@ -158,7 +160,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   node_searched++;
   
   chained_t root_chain;
-  root_chain.moves = malloc(MAX_MOVES*sizeof(move_t*));
+  root_chain.moves = calloc(MAX_MOVES,sizeof(move_t*));
   root_chain.plateau = *T;
   root_chain.result = *result;
 
@@ -180,7 +182,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   }
 
   root_chain.n_moves = generate_legal_moves(&root_chain.plateau, &root_chain.moves[0]);
-  root_chain.chain = malloc(root_chain.n_moves*sizeof(chained_t));
+  root_chain.chain = calloc(root_chain.n_moves,sizeof(chained_t*));
 
         /* absence de coups légaux : pat ou mat */
   if (root_chain.n_moves == 0) {
@@ -416,11 +418,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         if(temp_go)
         {
           printf("#ROOT je commence le calcul\n");
-          root_chain.chain = malloc(nb_elem*sizeof(chained_t**));
           // En gros sur chaque move on envoie evaluate 
           for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
           {
-            root_chain.chain[indice_calcul] = malloc(sizeof(chained_t*));
+            root_chain.chain[indice_calcul] = calloc(1,sizeof(chained_t));
             // Si on est arrivé au bout: en cas de raccourcissement
             if(indice_calcul > indice_fin-1)
               break;
@@ -497,6 +498,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     }
       
   }
+
+
   printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
   free_chain(root_chain.chain, root_chain.n_moves);
   free(root_chain.moves);
@@ -701,7 +704,7 @@ int main(int argc, char **argv)
                 printf("#%d Je reçois %d moves \n",rang, count);
                 #pragma omp critical
                 {
-            			root_chain.moves = malloc(count*sizeof(move_t));
+            			root_chain.moves = calloc(count,sizeof(move_t));
             			MPI_Recv(&root_chain.moves[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                   // construction de la root_chain
                   
@@ -804,12 +807,12 @@ int main(int argc, char **argv)
               if(temp_go == 1){
                 #pragma omp critical
                 temp_nb_elem = nb_elem;
-                root_chain.chain = malloc(root_chain.n_moves*sizeof(chained_t**));
+                root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 for(indice = 0; indice < nb_elem; indice++)
                 {
                   
-                  root_chain.chain[indice] = malloc(sizeof(chained_t));
+                  root_chain.chain[indice] = calloc(1,sizeof(chained_t));
                   if(indice > indice_fin-1)
                     break;
                   printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
