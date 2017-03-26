@@ -203,11 +203,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             send_moves[j]=root_chain.moves[reste+(nb_regions*nb_elem)+j];
           }
           // on envoie au thread de comm du processus correspondant
-          MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i, TAG_INIT, MPI_COMM_WORLD);
-          printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem);
+          MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
+          printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-          MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
+          MPI_Send(&send_moves, nb_elem, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
        
       }
       // On retire la région dont le maître s'occupe
