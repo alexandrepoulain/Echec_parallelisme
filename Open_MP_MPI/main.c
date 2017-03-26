@@ -91,16 +91,16 @@ void evaluate(chained_t* root_chain)
 
 void free_chain(chained_t* root)
 {
-  printf("n_moves = %d \n", root->n_moves);
-  if(root->n_moves && root->chain)
+  //printf("n_moves = %d \n", root->n_moves);
+  if(root->n_moves != 0)
   {
     
     for(int i = 0; i < root->n_moves; i++)
     {
-      printf("Je plonge  \n");
+      //printf("Je plonge  \n");
       free_chain(root->chain[i]);
       free(root->chain[i]);
-      printf("Je sors \n");
+      //printf("Je sors \n");
       
     }
     free(root->moves);
