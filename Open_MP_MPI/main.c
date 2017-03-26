@@ -126,7 +126,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   node_searched++;
   
   chained_t root_chain;
-  root_chain.moves = calloc(MAX_MOVES,sizeof(move_t*));
+  root_chain.moves = calloc(MAX_MOVES,sizeof(move_t));
   root_chain.plateau = *T;
   root_chain.result = *result;
 
