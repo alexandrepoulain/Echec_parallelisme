@@ -60,8 +60,6 @@ void evaluate(chained_t* root_chain)
   for (int i = 0; i < root_chain->n_moves; i++) 
   {
     root_chain->chain[i] = calloc(1,sizeof(chained_t));
-    chained_t new_chain;
-    *(root_chain->chain[i])= new_chain;
     play_move(&root_chain->plateau, root_chain->moves[i], &root_chain->chain[i]->plateau);
 
     evaluate(root_chain->chain[i]);
