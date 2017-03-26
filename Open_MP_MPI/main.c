@@ -675,6 +675,7 @@ int main(int argc, char **argv)
                 printf("#%d essaye d'envoyer un result \n", rang);
                 // envoit du result
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
+                free_chain(&root_chain);
                 /*
                 // envoit du jeton de calcul
                 int moi = rang; 
