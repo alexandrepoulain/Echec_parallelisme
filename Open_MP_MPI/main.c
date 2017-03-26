@@ -213,7 +213,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem+1);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-          MPI_Send(&send_moves, nb_elem+1, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
+          MPI_Send(&send_moves[0], nb_elem+1, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
         }
         else{
           move_t send_moves[nb_elem];
@@ -227,7 +227,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-          MPI_Send(&send_moves, nb_elem, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
+          MPI_Send(&send_moves[0], nb_elem, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
         }
       }
       // On retire la région dont le maître s'occupe
