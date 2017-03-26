@@ -201,7 +201,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         // SALE si on est arrivé au max du nombre de processus on arrête 
         // tant que le reste eest pas égal à 0 on rajoute un élément au message
         printf("#ROOT indice = %i\n", i);
-        if(reste != 1){
+        if(reste != 0){
           move_t send_moves[nb_elem+1];
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem+1; j++)
@@ -214,6 +214,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves[0], nb_elem+1, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
+          reste--;
         }
         else{
           move_t send_moves[nb_elem];
@@ -314,7 +315,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             // On reçoit les moves
             MPI_Recv(&new_root_chain.moves[0],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             // Récupération du plateau 
-            MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
+            MPI_Recv(&new_root_chain.plateau,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
             #pragma omp critical
             nb_elem_demande=1;
             // On signale au tread de calcul qu'il peux y aller
@@ -337,10 +338,14 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
                 // On teste si il y a besoin d'envoyer du calcul
                 if(indice_calcul+2 < nb_elem){
                   indice_fin--;
-                  MPI_Send(&moves[nb_elem-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
-                  MPI_Send(&T,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
-                  // On précise qu'une nouvelle région vient d'être crée
-                  nb_regions++;
+                  #pragma omp critical
+                  {
+                    MPI_Send(&root_chain.moves[root_chain.n_moves-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                    root_chain.n_moves--;
+                    MPI_Send(&root_chain.plateau,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                    // On précise qu'une nouvelle région vient d'être crée
+                    nb_regions++;
+                  }
                 }
                 // sinon on transmet le jeton de calcul
                 else{
@@ -349,12 +354,15 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               }
               // Sinon on est déjà dans un calcul demandé par un autre processus
               else{
-                if(indice_calcul+1 <= indice_fin){
-  
+                if(indice_calcul+1 <= new_root_chain.n_moves){
+                  
                 }
-                // Pour l'instant on fait rien mais bientot il pourra aider le calcul aussi ici
-                // Du coup on transmet juste
-                MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                else{
+                  // Pour l'instant on fait rien mais bientot il pourra aider le calcul aussi ici
+                  // Du coup on transmet juste
+                  MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                }
+                
               }
             }
           }
