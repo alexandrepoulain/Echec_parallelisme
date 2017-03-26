@@ -108,6 +108,7 @@ void evaluate(chained_t* root_chain)
     tt_store(T, result);
   */
   }
+  printf("Je détruit\n");
   //root_chain->moves = 0;
   free_chain(root_chain);
 }
