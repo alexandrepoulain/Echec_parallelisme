@@ -96,7 +96,7 @@ void evaluate(chained_t* root_chain)
       root_chain->result.PV[0] = root_chain->moves[i];
     }
     // free chain
-    //free(root_chain->chain[i]);
+    free(root_chain->chain[i]);
 /*  
   if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     break;    
@@ -109,7 +109,7 @@ void evaluate(chained_t* root_chain)
   */
   }
   //printf("Je détruit\n");
-  //root_chain->moves = 0;
+  free(root_chain->moves);
   //free_chain(root_chain);
 }
 
@@ -680,8 +680,8 @@ int main(int argc, char **argv)
                 // envoit du result
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
                 // On détruit ici
-                #pragma omp critical
-                free_chain(&root_chain);
+                //#pragma omp critical
+                //free_chain(&root_chain);
                 /*
                 // envoit du jeton de calcul
                 int moi = rang; 
