@@ -202,10 +202,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   /* on les définis ici car ils vont être partgé entre les deux treads */
   // On alloue la mémoire nécessaire à la demande 
   // Ici on fixe la taille à 3 moves
-  move_t new_move;
-  tree_t new_T, new_child;
-  result_t new_child_result, new_result;
-  // j correspond à l'indice où en est le processus de calcul
   int over = 0, new_over=0, termine_premiere_partie = 0, indice_calcul, indice_fin, nb_elem, nb_elem_demande;
   int fini = 1, go=0;
   // Initialisation du job tant qu'on peut on envoi un job à n processus
@@ -326,19 +322,22 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             result_t child_result;
             MPI_Recv(&child_result, 1, mpi_result_t, status.MPI_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
             nb_regions--;
-            int child_score = -child_result.score;
-            if (child_score > root_chain.result.score){
-              printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
-              root_chain.result.score = child_score;
-              // on recupere le move correspondant en utilisant le tableau indice
-              root_chain.result.best_move = child_result.best_move;
-              root_chain.result.pv_length = child_result.pv_length + 1;
-              for(int j = 0; j < child_result.pv_length; j++)
-                root_chain.result.PV[j+1] = child_result.PV[j];
-              root_chain.result.PV[0] = child_result.best_move;
+            #pragma omp critical
+            {
+              int child_score = -child_result.score;
+              if (child_score > root_chain.result.score){
+                printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
+                root_chain.result.score = child_score;
+                // on recupere le move correspondant en utilisant le tableau indice
+                root_chain.result.best_move = child_result.best_move;
+                root_chain.result.pv_length = child_result.pv_length + 1;
+                for(int j = 0; j < child_result.pv_length; j++)
+                  root_chain.result.PV[j+1] = child_result.PV[j];
+                root_chain.result.PV[0] = child_result.best_move;
+              }
+              T->alpha = MAX(T->alpha, child_score);
             }
-            T->alpha = MAX(T->alpha, child_score);
-            // Si toutes les régions ont répondu on arrête
+              // Si toutes les régions ont répondu on arrête
             if(nb_regions == 0)
             {
               #pragma omp critical
@@ -406,6 +405,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         temp_fin = fini;
 
       }
+      #pragma omp critical
       *result= root_chain.result;
       printf("#ROOT fini = %d\n", temp_fin);
     }
