@@ -512,7 +512,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 
   printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
-  free(root_chain.chain);
+  //free(root_chain.chain);
   //free_chain(&root_chain);
   //free_chain(&root_chain);
 }
