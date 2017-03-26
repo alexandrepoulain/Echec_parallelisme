@@ -512,7 +512,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
 {
 	printf("#ROOT rentre dans decide\n");
-	for (int depth = 1;; depth++) {
+	//for (int depth = 1;; depth++) {
 		T->depth = depth;
 		T->height = 0;
 		T->alpha_start = T->alpha = -MAX_SCORE - 1;
@@ -527,7 +527,7 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, in
       printf("#ROOT sort de decide\n");
       break;
     }
-  }
+  //}
 }
 
 int main(int argc, char **argv)
