@@ -110,6 +110,7 @@ void evaluate(chained_t* root_chain)
   }
   //printf("Je détruit\n");
   free(root_chain->moves);
+  free(root_chain->chain);
   //free_chain(root_chain);
 }
 
@@ -451,6 +452,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
             #pragma omp critical
             free(root_chain.chain[indice_calcul]);
+            free(root_chain.chain);
           }
           #pragma omp critical 
           go = 0;
@@ -510,6 +512,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 
   printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
+  free(root_chain.chain);
   //free_chain(&root_chain);
   //free_chain(&root_chain);
 }
