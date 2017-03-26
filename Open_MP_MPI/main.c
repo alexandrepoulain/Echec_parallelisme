@@ -1,7 +1,7 @@
 #include "projet.h"
 
 /* 2017-02-23 : version 1.0 */
-/* Version MPI_Pur: maître-esclaves 
+/* Version MPI_Open MP: maître-esclaves + Open MP 
   Le maître envoi le premier niveau de l'arbre aux esclaves
   Problèmes: - le maître ne calcule pas
               - Une fois fini un esclave envoie son résultat et attend (il devrait aider)
@@ -65,6 +65,8 @@ void evaluate(tree_t * T, result_t *result)
 
       int child_score = -child_result.score;
 
+#pragma omp critical
+{
       if (child_score > result->score) {
        result->score = child_score;
        result->best_move = moves[i];
@@ -73,7 +75,7 @@ void evaluate(tree_t * T, result_t *result)
         result->PV[j+1] = child_result.PV[j];
       result->PV[0] = moves[i];
     }
-
+}
     //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     //  break;    
 
@@ -249,11 +251,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status)
 {
-	for (int depth = 1;; depth++) {
-		T->depth = depth;
-		T->height = 0;
-		T->alpha_start = T->alpha = -MAX_SCORE - 1;
-		T->beta = MAX_SCORE + 1;
+  for (int depth = 1;; depth++) {
+    T->depth = depth;
+    T->height = 0;
+    T->alpha_start = T->alpha = -MAX_SCORE - 1;
+    T->beta = MAX_SCORE + 1;
     printf("=====================================\n");
     evaluate_root(T, result, tag, NP, status);
 
@@ -274,7 +276,8 @@ int main(int argc, char **argv)
 
   /* Init MPI */
   int NP, rang, tag = 10;
-  MPI_Init(&argc,&argv);
+  int provided;
+  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
   // nombre de processus
   
   MPI_Comm_size(MPI_COMM_WORLD, &NP);
