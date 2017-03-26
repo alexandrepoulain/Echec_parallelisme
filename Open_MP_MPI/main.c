@@ -175,7 +175,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
-      printf("#ROOT il y a %d moves pour %d processus\n", root_chain.n_moves, NP);
+      printf("#ROOT il y a %d moves pour %d processus et ils sont les suivant:\n", root_chain.n_moves, NP);
+      for(int r = 0; r < root_chain.n_moves; r++)
+        printf("#ROOT: move[%d] = %d \n", r, root_chain.moves[r]);
       int reste = root_chain.n_moves;
       int source;
       int nb_regions, indice_move, demandeur, index = 0;
@@ -305,10 +307,12 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           if(tag == TAG_DEMANDE){
 
             // On traite la demande
+            // on alloue la mémoire
+            new_root_chain.
             demandeur = status.MPI_SOURCE;
             printf("#ROOT je reçoie une demande de %d", demandeur);
             // On reçoit les moves
-            MPI_Recv(&new_move,1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
+            MPI_Recv(&new_root_chain.moves[0],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             // Récupération du plateau 
             MPI_Recv(&new_T,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
             #pragma omp critical
