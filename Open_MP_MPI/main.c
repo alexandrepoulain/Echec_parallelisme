@@ -126,6 +126,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   node_searched++;
   
   chained_t root_chain;
+  chained_t new_root_chain;
+
   root_chain.moves = calloc(MAX_MOVES,sizeof(move_t));
   root_chain.plateau = *T;
   root_chain.result = *result;
@@ -186,7 +188,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       root_chain.n_moves = nb_elem;
       // fixe l'indice de fin pour le processus 0
       indice_fin = nb_elem;
-      printf("#ROOT s'occupe de %d moves\n", reste);
+      printf("#ROOT reste = \n", reste);
       // Processus 0 peut commencer
       #pragma omp critical
       go = 1;
@@ -202,7 +204,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem+1; j++)
           {
-            send_moves[j]=root_chain.moves[(nb_elem+1)*nb_regions+nb_elem+j];
+            send_moves[j]=root_chain.moves[(nb_elem+1)*i+nb_elem+j];
           }
           // on envoie au thread de comm du processus correspondant
           MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
@@ -260,8 +262,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           new_over = 0;
           printf("#ROOT J'ai envoyé le résultat pour %d\n", demandeur);
         }
+        
         */
-
         
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
         
@@ -298,7 +300,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             }
             printf("#ROOT bien reçu et traité %d --- il reste %d régions à venir\n", status.MPI_SOURCE, nb_regions);
           }
-/*
+          /*
           // Si on reçoit une demande de calcul en réponse à un jeton
           if(tag == TAG_DEMANDE){
 
