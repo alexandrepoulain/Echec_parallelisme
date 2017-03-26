@@ -449,10 +449,12 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
              root_chain.result.PV[0] = root_chain.moves[indice_calcul];
             }
 
-
+            #pragma omp critical
+            free(root_chain.chain[indice_calcul]);
           }
           #pragma omp critical 
           go = 0;
+          free(root_chain.moves);
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
@@ -508,7 +510,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 
   printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
-  free_chain(&root_chain);
+  //free_chain(&root_chain);
   //free_chain(&root_chain);
 }
 
