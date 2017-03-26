@@ -91,19 +91,20 @@ void evaluate(chained_t* root_chain)
 
 }
 
-void free_chain(chained_t** root, int n_elem)
+void free_chain(chained_t* root)
 {
-  if(n_elem)
+  if(root->n_moves && root->chain)
   {
     printf("résult détruit \n");
-    for(int i = 0; i < n_elem; i++)
+    for(int i = 0; i < root->n_moves; i++)
     {
       printf("Je plonge  \n");
-      free_chain(root[i]->chain, root[i]->n_moves);
+      free_chain(root->chain[i]);
+      free(root->chain[i]);
       printf("Je sors \n");
-      free(root[i]->moves);
-      free(root[i]);
+      
     }
+    free(root->moves);
   }
   
   
@@ -501,8 +502,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 
   printf("#ROOT je viens sort de evaluate_root et retourne dans decide \n");
-  free_chain(root_chain.chain, root_chain.n_moves);
-  free(root_chain.moves);
+  free_chain(&root_chain);
   //free_chain(&root_chain);
 }
 
