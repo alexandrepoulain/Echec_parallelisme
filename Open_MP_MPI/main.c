@@ -222,6 +222,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         nb_regions = NP-index;
         nb_elem = root_chain.n_moves/(NP-index);
       }
+      root_chain.n_moves = nb_elem;
       // fixe l'indice de fin pour le processus 0
       indice_fin = nb_elem;
       // Processus 0 peut commencer
