@@ -44,7 +44,7 @@ void free_chain(chained_t* root)
 void evaluate(chained_t* root_chain)
 {
   node_searched++;
-  printf("je construit\n");
+  //printf("je construit\n");
   root_chain->moves = calloc(MAX_MOVES,sizeof(move_t));
 
   root_chain->result.score = -MAX_SCORE - 1;
