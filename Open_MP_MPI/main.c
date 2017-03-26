@@ -91,7 +91,7 @@ void evaluate(chained_t* root_chain)
 
 void free_chain(chained_t* root)
 {
-  //printf("n_moves = %d \n", root->n_moves);
+  printf("n_moves = %d \n", root->n_moves);
   if(root->n_moves != 0)
   {
     
@@ -674,6 +674,7 @@ int main(int argc, char **argv)
                 // envoit du result
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
                 // On détruit ici
+                #pragma omp critical
                 free_chain(&root_chain);
                 /*
                 // envoit du jeton de calcul
