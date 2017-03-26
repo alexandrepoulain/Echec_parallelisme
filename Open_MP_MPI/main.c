@@ -21,6 +21,26 @@ double my_gettimeofday(){
   return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
 }
 
+void free_chain(chained_t* root)
+{
+  printf("n_moves = %d \n", root->n_moves);
+  if(root->n_moves != 0)
+  {
+    
+    for(int i = 0; i < root->n_moves; i++)
+    {
+      //printf("Je plonge  \n");
+      free_chain(root->chain[i]);
+      free(root->chain[i]);
+      //printf("Je sors \n");
+      
+    }
+    free(root->moves);
+  }
+  
+  
+}
+
 void evaluate(chained_t* root_chain)
 {
   node_searched++;
@@ -76,7 +96,7 @@ void evaluate(chained_t* root_chain)
       root_chain->result.PV[0] = root_chain->moves[i];
     }
     // free chain
-    free(root_chain->chain[i]);
+    //free(root_chain->chain[i]);
 /*  
   if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     break;    
@@ -88,29 +108,11 @@ void evaluate(chained_t* root_chain)
     tt_store(T, result);
   */
   }
-  root_chain->moves = 0;
-
+  //root_chain->moves = 0;
+  free_chain(root_chain);
 }
 
-void free_chain(chained_t* root)
-{
-  printf("n_moves = %d \n", root->n_moves);
-  if(root->n_moves != 0)
-  {
-    
-    for(int i = 0; i < root->n_moves; i++)
-    {
-      //printf("Je plonge  \n");
-      free_chain(root->chain[i]);
-      free(root->chain[i]);
-      //printf("Je sors \n");
-      
-    }
-    free(root->moves);
-  }
-  
-  
-}
+
 
 
 
