@@ -75,7 +75,9 @@ void evaluate(chained_t* root_chain)
         root_chain->result.PV[j+1] = root_chain->chain[i]->result.PV[j];
       root_chain->result.PV[0] = root_chain->moves[i];
     }
-/*
+    // free chain
+    free(root_chain->chain[i]);
+/*  
   if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     break;    
 
@@ -86,6 +88,7 @@ void evaluate(chained_t* root_chain)
     tt_store(T, result);
   */
   }
+  free(&root_chain->moves);
 
 }
 
