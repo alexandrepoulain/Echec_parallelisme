@@ -88,7 +88,7 @@ void evaluate(chained_t* root_chain)
     tt_store(T, result);
   */
   }
-  free(&root_chain->moves);
+  root_chain->moves = 0;
 
 }
 
