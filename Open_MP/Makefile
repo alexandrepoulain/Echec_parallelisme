@@ -15,8 +15,8 @@ clean:
 	rm -f *.o decide
 
 run:
-	export OMP_NUM_THREADS=12
+	export OMP_NUM_THREADS=4
 	export OMP_SCHEDULE="dynamic"
 	export OMP_NESTED=FALSE
-	./decide "4k//4K///4P w"
+	./decide "/ppp//PPP//7k//7K w" 
 
