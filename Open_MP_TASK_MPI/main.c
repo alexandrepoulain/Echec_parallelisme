@@ -1,7 +1,7 @@
 #include "projet.h"
 
 /* 2017-02-23 : version 1.0 */
-/* Version MPI_Pur: maître-esclaves 
+/* Version MPI_Open MP Task: maître-esclaves + open MP avec utilisation des taches
   Le maître envoi le premier niveau de l'arbre aux esclaves
   Problèmes: - le maître ne calcule pas
               - Une fois fini un esclave envoie son résultat et attend (il devrait aider)
@@ -59,8 +59,8 @@ void evaluate(tree_t * T, result_t *result)
       result_t child_result;
 	if(T->depth-T->height>9){
 		
-		#pragma omp task untied
-		{
+#pragma omp task untied
+{
   
 
       play_move(T, moves[i], &child);
@@ -81,7 +81,7 @@ void evaluate(tree_t * T, result_t *result)
     //  break;    
 
     T->alpha = MAX(T->alpha, child_score);
-		}
+}
 
 	}else{
 
@@ -274,7 +274,8 @@ int main(int argc, char **argv)
 
   /* Init MPI */
   int NP, rang, tag = 10;
-  MPI_Init(&argc,&argv);
+  int provided;
+  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
   // nombre de processus
   
   MPI_Comm_size(MPI_COMM_WORLD, &NP);
@@ -410,7 +411,7 @@ int main(int argc, char **argv)
       play_move(&root_proc, move, &child);
       //printf("#%d rentre récursivement\n", rang);
 #pragma omp parallel
-     #pragma omp single 
+   #pragma omp single 
       evaluate(&child, &child_result);
       int child_score = -child_result.score;
       root_proc.alpha = MAX(root_proc.alpha, child_score);
