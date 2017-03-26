@@ -188,7 +188,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       root_chain.n_moves = nb_elem;
       // fixe l'indice de fin pour le processus 0
       indice_fin = nb_elem;
-      printf("#ROOT reste = \n", reste);
+      printf("#ROOT reste = %d\n", reste);
       // Processus 0 peut commencer
       #pragma omp critical
       go = 1;
