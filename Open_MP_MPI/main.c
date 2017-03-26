@@ -95,6 +95,7 @@ void free_chain(chained_t* root)
 {
   if(root->n_moves)
   {
+    printf("Tente de détruire \n");
     free(&root->plateau);
     free(&root->result);
     for(int i = 0; i < root->n_moves; i++)
