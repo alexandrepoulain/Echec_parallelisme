@@ -173,20 +173,18 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
+      printf("#ROOT il y a %d moves pour %d processus\n", root_chain.n_moves, NP);
       int reste = root_chain.n_moves;
       int source;
       int nb_regions, indice_move, demandeur, index = 0;
-      while (reste == root_chain.n_moves)
-      {
-        reste = (root_chain.n_moves)%(NP-index);
-        nb_regions = NP-index;
-        nb_elem = (root_chain.n_moves)/(NP-index);
-        index++;
-      }
+        reste = (root_chain.n_moves)%(NP);
+        nb_regions = NP;
+        nb_elem = (root_chain.n_moves)/(NP);
+
       root_chain.n_moves = reste;
       // fixe l'indice de fin pour le processus 0
       indice_fin = reste;
-      printf("#ROOT s'occupe de %d moves", reste);
+      printf("#ROOT s'occupe de %d moves\n", reste);
       // Processus 0 peut commencer
       #pragma omp critical
       go = 1;
