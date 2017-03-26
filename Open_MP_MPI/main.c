@@ -418,11 +418,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         if(temp_go)
         {
           printf("#ROOT je commence le calcul\n");
-          root_chain.chain = malloc(nb_elem*sizeof(chained_t*));
+          root_chain.chain = malloc(nb_elem*sizeof(chained_t**));
           // En gros sur chaque move on envoie evaluate 
           for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
           {
-            root_chain.chain[indice_calcul] = malloc(sizeof(chained_t));
+            root_chain.chain[indice_calcul] = malloc(sizeof(chained_t*));
             // Si on est arrivé au bout: en cas de raccourcissement
             if(indice_calcul > indice_fin-1)
               break;
