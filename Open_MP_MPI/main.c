@@ -119,49 +119,8 @@ void evaluate(chained_t* root_chain)
 
 
 /* Fonction evaluate root qui sera appeler seulement par le processus root */
-void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
+void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
-
-  /* Le result */
-  const int nitems2=4;
-  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
-  MPI_Datatype types2[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
-  MPI_Datatype mpi_result_t;
-  MPI_Aint     offsets2[4];
-
-  offsets2[0] = offsetof(result_t, score);
-  offsets2[1] = offsetof(result_t, best_move);
-  offsets2[2] = offsetof(result_t, pv_length);
-  offsets2[3] = offsetof(result_t, PV);
-
-  MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
-  MPI_Type_commit(&mpi_result_t);
-
-  /* Plateau de jeu */
-  const int nitems=14;
-  int          blocklengths[14] = {128,128,1,1,1,1,1,1,2,2,128,1,1, MAX_DEPTH};
-  MPI_Datatype types[14] = {MPI_CHAR, MPI_CHAR, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_CHAR, MPI_INT, MPI_INT, MPI_INT};
-  MPI_Datatype mpi_tree_t;
-  MPI_Aint     offsets[14];
-
-  offsets[0] = offsetof(tree_t, pieces);
-  offsets[1] = offsetof(tree_t, colors);
-  offsets[2] = offsetof(tree_t, side);
-  offsets[3] = offsetof(tree_t, depth);
-  offsets[4] = offsetof(tree_t, height);
-  offsets[5] = offsetof(tree_t, alpha);
-  offsets[6] = offsetof(tree_t, beta);
-  offsets[7] = offsetof(tree_t, alpha_start);
-  offsets[8] = offsetof(tree_t, king);
-  offsets[9] = offsetof(tree_t, pawns);
-  offsets[10] = offsetof(tree_t, attack);
-  offsets[11] = offsetof(tree_t, suggested_move);
-  offsets[12] = offsetof(tree_t, hash);
-  offsets[13] = offsetof(tree_t, history);
-
-  MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_tree_t);
-  MPI_Type_commit(&mpi_tree_t);
-  MPI_Datatype datatype;
   int* count;
 
   node_searched++;
@@ -524,7 +483,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 
 
-void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang)
+void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
 	printf("#ROOT rentre dans decide\n");
 	for (int depth = 1;; depth++) {
@@ -533,7 +492,7 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, in
 		T->alpha_start = T->alpha = -MAX_SCORE - 1;
 		T->beta = MAX_SCORE + 1;
     printf("=====================================\n");
-    evaluate_root(T, result, tag, NP, status, rang);
+    evaluate_root(T, result, tag, NP, status, rang, mpi_tree_t, mpi_result_t);
 
     printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
     print_pv(T, result);
@@ -637,7 +596,7 @@ int main(int argc, char **argv)
       // nowait pour pas qu'il attend l'autre
       // un thread sert 
 
-      decide(&T, &result, tag, NP, status, rang);
+      decide(&T, &result, tag, NP, status, rang, mpi_tree_t, mpi_result_t);
       for(i=1; i<NP; i++){
         //printf("#ROOT envoi finalize %d\n", i);
         MPI_Send(&T, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
