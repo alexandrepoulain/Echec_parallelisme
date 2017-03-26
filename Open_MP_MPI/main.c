@@ -178,62 +178,40 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       int nb_regions, indice_move, demandeur, index = 0;
       while (reste == root_chain.n_moves)
       {
-        reste = root_chain.n_moves%(NP-index);
+        reste = (root_chain.n_moves)%(NP-index);
         nb_regions = NP-index;
-        nb_elem = root_chain.n_moves/(NP-index);
+        nb_elem = (root_chain.n_moves)/(NP-index);
+        index++;
       }
-      root_chain.n_moves = nb_elem;
+      root_chain.n_moves = reste;
       // fixe l'indice de fin pour le processus 0
-      indice_fin = nb_elem;
+      indice_fin = reste;
+      printf("#ROOT s'occupe de %d moves", reste);
       // Processus 0 peut commencer
       #pragma omp critical
       go = 1;
-      for (int i = 1; i < nb_regions ; i++) 
+      nb_regions --; 
+      for (int i = 0; i < nb_regions ; i++) 
       {
         // SALE si on est arrivé au max du nombre de processus on arrête 
         // tant que le reste eest pas égal à 0 on rajoute un élément au message
         printf("#ROOT indice = %i\n", i);
-	      if (reste!=0)
-        {
-          move_t send_moves[nb_elem+1];
-          #pragma omp critical
-          reste--;
-          // on remplit le tableau de moves à envoyer
-          for (int j=0; j<nb_elem+1; j++)
-          {
-            send_moves[j]=root_chain.moves[nb_regions+j];
-          }
-          // on envoie au thread de comm du processus correspondant
-          MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i, TAG_INIT, MPI_COMM_WORLD);
-          printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem+1);
-          // Send au processus i du move
-          //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-          MPI_Send(&send_moves, nb_elem+1, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
-        }
-        // le reste est égal à 0
-        else
-        {
           move_t send_moves[nb_elem];
-          #pragma omp critical
-          reste--;
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem; j++)
           {
-            send_moves[j]=root_chain.moves[nb_regions+j];
+            send_moves[j]=root_chain.moves[reste+(nb_regions*nb_elem)+j];
           }
           // on envoie au thread de comm du processus correspondant
           MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i, TAG_INIT, MPI_COMM_WORLD);
-          //printf("#ROOT envoi à #%d\n", i);
+          printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-          printf("#ROOT envoi à #%d de %d moves\n", i, nb_elem);
           MPI_Send(&send_moves, nb_elem, MPI_INT, i, TAG_INIT, MPI_COMM_WORLD);
-        }
-	     
        
       }
       // On retire la région dont le maître s'occupe
-      nb_regions --; 
+      
       printf("#ROOT fin initialisation\n"); 
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
