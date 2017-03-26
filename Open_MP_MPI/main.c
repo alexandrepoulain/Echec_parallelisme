@@ -97,7 +97,9 @@ void free_chain(chained_t* root)
   {
     printf("Tente de détruire \n");
     free(&root->plateau);
+    printf("Plateau détruit \n");
     free(&root->result);
+    printf("résult détruit \n");
     for(int i = 0; i < root->n_moves; i++)
     {
       free_chain(root->chain[i]);
