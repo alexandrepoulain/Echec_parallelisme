@@ -803,7 +803,7 @@ int main(int argc, char **argv)
                     root_chain.chain[indice] = calloc(1,sizeof(chained_t));
                     
                     printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
-                    play_move(&root_chain.plateau, root_chain.moves[indice], &((root_chain.chain[indice])->plateau));
+                    play_move(&root_chain.plateau, root_chain.moves[indice], &(root_chain.chain[indice]->plateau));
                     printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[indice]);
                     evaluate(root_chain.chain[indice]);
                     printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[indice]);
