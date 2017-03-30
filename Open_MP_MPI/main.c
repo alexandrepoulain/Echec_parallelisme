@@ -652,6 +652,7 @@ int main(int argc, char **argv)
               {
                 printf("#%d essaye d'envoyer un result \n", rang);
                 // envoit du result
+                #pragma omp critical
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
                 // On détruit ici
                 //#pragma omp critical
@@ -676,6 +677,7 @@ int main(int argc, char **argv)
           		{
   		          printf("#%d je reçois de ROOT \n",rang);
           			// Rceive tree
+                #pragma omp critical
           			MPI_Recv(&root_chain.plateau, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
 
                 printf("#%d j'ai reçu l'arbre de ROOT \n",rang);
