@@ -131,7 +131,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   root_chain.moves = calloc(MAX_MOVES,sizeof(move_t));
   root_chain.plateau = *T;
   root_chain.result = *result;
-
+  printf("#ROOT Test\n");
   root_chain.result.score = -MAX_SCORE - 1;
   root_chain.result.pv_length = 0;
 
