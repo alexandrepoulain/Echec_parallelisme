@@ -789,8 +789,10 @@ int main(int argc, char **argv)
               temp_go = go;
               if(temp_go == 1){
                 #pragma omp critical
-                temp_nb_elem = nb_elem;
-                root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
+                {
+                  temp_nb_elem = nb_elem;
+                  root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
+                }
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
                 #pragma omp critical
                 {
