@@ -96,7 +96,7 @@ void evaluate(chained_t* root_chain)
       root_chain->result.PV[0] = root_chain->moves[i];
     }
     // free chain
-    free(root_chain->chain[i]);
+    //free(root_chain->chain[i]);
 /*  
   if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     break;    
@@ -109,8 +109,8 @@ void evaluate(chained_t* root_chain)
   */
   }
   //printf("Je détruit\n");
-  free(root_chain->moves);
-  free(root_chain->chain);
+  //free(root_chain->moves);
+  //free(root_chain->chain);
   //free_chain(root_chain);
 }
 
@@ -395,37 +395,38 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         {
           printf("#ROOT je commence le calcul\n");
           // En gros sur chaque move on envoie evaluate 
-          for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
+          #pragma omp critical
           {
-            root_chain.chain[indice_calcul] = calloc(1,sizeof(chained_t));
-            // Si on est arrivé au bout: en cas de raccourcissement
-            if(indice_calcul > indice_fin-1)
-              break;
-            printf("#ROOT je calcul %d \n", root_chain.moves[indice_calcul]);
-            play_move(&root_chain.plateau, root_chain.moves[indice_calcul], &root_chain.chain[indice_calcul]->plateau);
-            printf("#ROOT j'ai joué le move calcul %d \n", root_chain.moves[indice_calcul]);
-            evaluate(root_chain.chain[indice_calcul]);
-            printf("#ROOT je sors de evaluate pour le move %d \n", root_chain.moves[indice_calcul]);
-            int child_score = -root_chain.chain[indice_calcul]->result.score;
-            #pragma omp critical
+            for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
             {
-              if (child_score > root_chain.result.score) 
-              {
-               root_chain.result.score = child_score;
-               root_chain.result.best_move = root_chain.moves[indice_calcul];
-               root_chain.result.pv_length = root_chain.chain[indice_calcul]->result.pv_length + 1;
-               for(int j = 0; j < root_chain.chain[indice_calcul]->result.pv_length; j++)
-                root_chain.result.PV[j+1] = root_chain.chain[indice_calcul]->result.PV[j];
-               root_chain.result.PV[0] = root_chain.moves[indice_calcul];
-              }
+              root_chain.chain[indice_calcul] = calloc(1,sizeof(chained_t));
+              // Si on est arrivé au bout: en cas de raccourcissement
+              if(indice_calcul > indice_fin-1)
+                break;
+              printf("#ROOT je calcul %d \n", root_chain.moves[indice_calcul]);
+              play_move(&root_chain.plateau, root_chain.moves[indice_calcul], &root_chain.chain[indice_calcul]->plateau);
+              printf("#ROOT j'ai joué le move calcul %d \n", root_chain.moves[indice_calcul]);
+              evaluate(root_chain.chain[indice_calcul]);
+              printf("#ROOT je sors de evaluate pour le move %d \n", root_chain.moves[indice_calcul]);
+              int child_score = -root_chain.chain[indice_calcul]->result.score;
+              
+                if (child_score > root_chain.result.score) 
+                {
+                 root_chain.result.score = child_score;
+                 root_chain.result.best_move = root_chain.moves[indice_calcul];
+                 root_chain.result.pv_length = root_chain.chain[indice_calcul]->result.pv_length + 1;
+                 for(int j = 0; j < root_chain.chain[indice_calcul]->result.pv_length; j++)
+                  root_chain.result.PV[j+1] = root_chain.chain[indice_calcul]->result.PV[j];
+                 root_chain.result.PV[0] = root_chain.moves[indice_calcul];
+                }
 
-              free(root_chain.chain[indice_calcul]);
-              free(root_chain.chain);
+                //free(root_chain.chain[indice_calcul]);
+                //free(root_chain.chain);
             }
           }
           #pragma omp critical 
           go = 0;
-          free(root_chain.moves);
+          //free(root_chain.moves);
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
