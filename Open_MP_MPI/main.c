@@ -792,34 +792,38 @@ int main(int argc, char **argv)
                 temp_nb_elem = nb_elem;
                 root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
                 printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
-                for(indice = 0; indice < nb_elem; indice++)
-                {
-                  
-                  root_chain.chain[indice] = calloc(1,sizeof(chained_t));
-                  if(indice > indice_fin-1)
-                    break;
-                  printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
-                  play_move(&root_chain.plateau, root_chain.moves[indice], &((root_chain.chain[indice])->plateau));
-                  printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[indice]);
-                  evaluate(root_chain.chain[indice]);
-                  printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[indice]);
-                  int child_score = -root_chain.chain[indice]->result.score;
-
-                  if (child_score > root_chain.chain[indice]->result.score) {
-                   root_chain.result.score = child_score;
-                   root_chain.result.best_move = root_chain.moves[indice];
-                   root_chain.result.pv_length = root_chain.chain[indice]->result.pv_length + 1;
-                   for(int j = 0; j < root_chain.chain[indice]->result.pv_length; j++)
-                    root_chain.result.PV[j+1] = root_chain.chain[indice]->result.PV[j];
-                   root_chain.result.PV[0] = root_chain.moves[indice];
-                  }
-                }
-                printf("#%d Fini le calcul\n", rang);
                 #pragma omp critical
                 {
+                  for(indice = 0; indice < nb_elem; indice++)
+                  {
+                  
+                  
+                    root_chain.chain[indice] = calloc(1,sizeof(chained_t));
+                    
+                    printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
+                    play_move(&root_chain.plateau, root_chain.moves[indice], &((root_chain.chain[indice])->plateau));
+                    printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[indice]);
+                    evaluate(root_chain.chain[indice]);
+                    printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[indice]);
+                    
+                    int child_score = -root_chain.chain[indice]->result.score;
+
+                    if (child_score > root_chain.chain[indice]->result.score) {
+                     root_chain.result.score = child_score;
+                     root_chain.result.best_move = root_chain.moves[indice];
+                     root_chain.result.pv_length = root_chain.chain[indice]->result.pv_length + 1;
+                     for(int j = 0; j < root_chain.chain[indice]->result.pv_length; j++)
+                      root_chain.result.PV[j+1] = root_chain.chain[indice]->result.PV[j];
+                     root_chain.result.PV[0] = root_chain.moves[indice];
+
+                    }
+                  }
+                  printf("#%d Fini le calcul\n", rang);
+                
                   over = 1;
                   go = 0;
                 }
+               
               }
             }
           }
