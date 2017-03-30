@@ -166,6 +166,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   int job_sent = 0;
   int compt_sent = 0;
   int indice[NP];
+  for(int i =0; i <n_moves; i++){
+    printf("#ROOT move[%d] = %d \n", i, moves[i]);
+  }
+
   for (int i = 1; i < n_moves ; i++) {
     // SALE si on est arrivé au max du nombre de processus on arrête 
     if( i >= NP)
