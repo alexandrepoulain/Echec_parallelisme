@@ -471,11 +471,10 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
-          termine_premiere_partie = 1;
-          #pragma omp critical
           {
+            termine_premiere_partie = 1;
             over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
-            temp_fin = fini;
+            temp_fin = 1;
           }
           // Ici on se met en attente du process de communication
           // On recupère et on traite les demandes
