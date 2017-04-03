@@ -96,21 +96,21 @@ void evaluate(chained_t* root_chain)
       root_chain->result.PV[0] = root_chain->moves[i];
     }
     // free chain
-    //free(root_chain->chain[i]);
-/*  
-  if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+    free(root_chain->chain[i]);
+ 
+  if (ALPHA_BETA_PRUNING && child_score >= root_chain->plateau.beta)
     break;    
 
-  T->alpha = MAX(T->alpha, child_score);
+  root_chain->plateau.alpha = MAX(root_chain->plateau.alpha, child_score);
 
 
   if (TRANSPOSITION_TABLE)
-    tt_store(T, result);
-  */
+    tt_store(&root_chain->plateau, &root_chain->result);
+  
   }
   //printf("Je détruit\n");
-  //free(root_chain->moves);
-  //free(root_chain->chain);
+  free(root_chain->moves);
+  free(root_chain->chain);
   //free_chain(root_chain);
 }
 
@@ -293,7 +293,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
                   root_chain.result.PV[j+1] = child_result.PV[j];
                 root_chain.result.PV[0] = child_result.best_move;
               }
-              T->alpha = MAX(T->alpha, child_score);
+              root_chain.plateau.alpha = MAX(root_chain.plateau.alpha, child_score);
             }
               // Si toutes les régions ont répondu on arrête
             if(nb_regions == 0)
@@ -420,13 +420,14 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
                  root_chain.result.PV[0] = root_chain.moves[indice_calcul];
                 }
 
-                //free(root_chain.chain[indice_calcul]);
-                //free(root_chain.chain);
+                free(root_chain.chain[indice_calcul]);
+                //
             }
+            free(root_chain.chain);
           }
           #pragma omp critical 
           go = 0;
-          //free(root_chain.moves);
+          free(root_chain.moves);
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
