@@ -118,44 +118,41 @@ void evaluate(chained_t* root_chain)
 
 
 /* Fonction evaluate root qui sera appeler seulement par le processus root */
-void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
+void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
   int* count;
 
   node_searched++;
   
-  chained_t root_chain;
   chained_t new_root_chain;
 
-  root_chain.moves = calloc(MAX_MOVES,sizeof(move_t));
-  root_chain.plateau = *T;
-  root_chain.result = *result;
+  root_chain->moves = calloc(MAX_MOVES,sizeof(move_t));
   printf("#ROOT Test\n");
-  root_chain.result.score = -MAX_SCORE - 1;
-  root_chain.result.pv_length = 0;
+  root_chain->result.score = -MAX_SCORE - 1;
+  root_chain->result.pv_length = 0;
 
-  if (test_draw_or_victory(&root_chain.plateau, &root_chain.result))
+  if (test_draw_or_victory(&root_chain->plateau, &root_chain->result))
     return;
 
-  if (TRANSPOSITION_TABLE && tt_lookup(&root_chain.plateau, &root_chain.result))     /* la réponse est-elle déjà connue ? */
+  if (TRANSPOSITION_TABLE && tt_lookup(&root_chain->plateau, &root_chain->result))     /* la réponse est-elle déjà connue ? */
     return;
 
-  compute_attack_squares(&root_chain.plateau);
+  compute_attack_squares(&root_chain->plateau);
 
   /* profondeur max atteinte ? si oui, évaluation heuristique */
-  if (root_chain.plateau.depth == 0) {
-    root_chain.result.score = (2 * root_chain.plateau.side - 1) * heuristic_evaluation(&root_chain.plateau);
+  if (root_chain->plateau.depth == 0) {
+    root_chain->result.score = (2 * root_chain->plateau.side - 1) * heuristic_evaluation(&root_chain->plateau);
     return;
   }
   #pragma omp critical
   {
-    root_chain.n_moves = generate_legal_moves(&root_chain.plateau, &root_chain.moves[0]);
-    root_chain.chain = calloc(root_chain.n_moves,sizeof(chained_t*));
+    root_chain->n_moves = generate_legal_moves(&root_chain->plateau, &root_chain->moves[0]);
+    root_chain->chain = calloc(root_chain->n_moves,sizeof(chained_t*));
   }
 
         /* absence de coups légaux : pat ou mat */
-  if (root_chain.n_moves == 0) {
-    root_chain.result.score = check(&root_chain.plateau) ? -MAX_SCORE : CERTAIN_DRAW;
+  if (root_chain->n_moves == 0) {
+    root_chain->result.score = check(&root_chain->plateau) ? -MAX_SCORE : CERTAIN_DRAW;
     return;
   }
   // évalue récursivement les positions accessibles à partir d'ici 
@@ -176,19 +173,19 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
-      printf("#ROOT il y a %d moves pour %d processus et ils sont les suivant:\n", root_chain.n_moves, NP);
-      for(int r = 0; r < root_chain.n_moves; r++)
-        printf("#ROOT: move[%d] = %d \n", r, root_chain.moves[r]);
-      int reste = root_chain.n_moves;
+      printf("#ROOT il y a %d moves pour %d processus et ils sont les suivant:\n", root_chain->n_moves, NP);
+      for(int r = 0; r < root_chain->n_moves; r++)
+        printf("#ROOT: move[%d] = %d \n", r, root_chain->moves[r]);
+      int reste = root_chain->n_moves;
       int source;
       int nb_regions, indice_move, demandeur, index = 0;
-      while(reste == root_chain.n_moves){
-        reste = (root_chain.n_moves)%(NP-index);
+      while(reste == root_chain->n_moves){
+        reste = (root_chain->n_moves)%(NP-index);
         nb_regions = NP-index;
-        nb_elem = (root_chain.n_moves)/(NP-index);
+        nb_elem = (root_chain->n_moves)/(NP-index);
         index++;
       }
-      root_chain.n_moves = nb_elem;
+      root_chain->n_moves = nb_elem;
       // fixe l'indice de fin pour le processus 0
       indice_fin = nb_elem;
       printf("#ROOT reste = %d\n", reste);
@@ -207,10 +204,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem+1; j++)
           {
-            send_moves[j]=root_chain.moves[(nb_elem+1)*i+nb_elem+j];
+            send_moves[j]=root_chain->moves[(nb_elem+1)*i+nb_elem+j];
           }
           // on envoie au thread de comm du processus correspondant
-          MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
+          MPI_Send(&root_chain->plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
           printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem+1);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
@@ -222,10 +219,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem; j++)
           {
-            send_moves[j]=root_chain.moves[(nb_elem+1)*temp_reste+nb_elem+j];
+            send_moves[j]=root_chain->moves[(nb_elem+1)*temp_reste+nb_elem+j];
           }
           // on envoie au thread de comm du processus correspondant
-          MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
+          MPI_Send(&root_chain->plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
           printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem);
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
@@ -283,21 +280,21 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             nb_regions--;
             #pragma omp critical
             {
-              int child_score = -child_result.score;
-              if (child_score > root_chain.result.score){
+              int child_score = child_result.score;
+              if (child_score > root_chain->result.score){
                 printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
-                root_chain.result.score = child_score;
+                root_chain->result.score = child_score;
                 // on recupere le move correspondant en utilisant le tableau indice
-                root_chain.result.best_move = child_result.best_move;
-                root_chain.result.pv_length = child_result.pv_length + 1;
+                root_chain->result.best_move = child_result.best_move;
+                root_chain->result.pv_length = child_result.pv_length + 1;
                 for(int j = 0; j < child_result.pv_length; j++)
-                  root_chain.result.PV[j+1] = child_result.PV[j];
-                root_chain.result.PV[0] = child_result.best_move;
+                  root_chain->result.PV[j+1] = child_result.PV[j];
+                root_chain->result.PV[0] = child_result.best_move;
               }
-              root_chain.plateau.alpha = MAX(root_chain.plateau.alpha, child_score);
+              root_chain->plateau.alpha = MAX(root_chain->plateau.alpha, child_score);
             }
             printf("#ROOT receive score = %d \n", child_result.score);
-            printf("#ROOT main_score = %d \n", root_chain.result.score);
+            printf("#ROOT main_score = %d \n", root_chain->result.score);
               // Si toutes les régions ont répondu on arrête
             if(nb_regions == 0)
             {
@@ -312,13 +309,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
             // On traite la demande
             // on alloue la mémoire
-            new_root_chain.
+            new_root_chain->
             demandeur = status.MPI_SOURCE;
             printf("#ROOT je reçoie une demande de %d", demandeur);
             // On reçoit les moves
-            MPI_Recv(&new_root_chain.moves[0],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
+            MPI_Recv(&new_root_chain->moves[0],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             // Récupération du plateau 
-            MPI_Recv(&new_root_chain.plateau,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
+            MPI_Recv(&new_root_chain->plateau,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
             #pragma omp critical
             nb_elem_demande=1;
             // On signale au tread de calcul qu'il peux y aller
@@ -343,9 +340,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
                   indice_fin--;
                   #pragma omp critical
                   {
-                    MPI_Send(&root_chain.moves[root_chain.n_moves-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
-                    root_chain.n_moves--;
-                    MPI_Send(&root_chain.plateau,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                    MPI_Send(&root_chain->moves[root_chain->n_moves-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                    root_chain->n_moves--;
+                    MPI_Send(&root_chain->plateau,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
                     // On précise qu'une nouvelle région vient d'être crée
                     nb_regions++;
                   }
@@ -357,7 +354,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               }
               // Sinon on est déjà dans un calcul demandé par un autre processus
               else{
-                if(indice_calcul+1 <= new_root_chain.n_moves){
+                if(indice_calcul+1 <= new_root_chain->n_moves){
                   
                 }
                 else{
@@ -376,8 +373,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
       }
       #pragma omp critical
-      *result= root_chain.result;
-      *T = root_chain.plateau;
       printf("#ROOT fini = %d\n", temp_fin);
     }
       
@@ -402,35 +397,35 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           {
             for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
             {
-              root_chain.chain[indice_calcul] = calloc(1,sizeof(chained_t));
+              root_chain->chain[indice_calcul] = calloc(1,sizeof(chained_t));
               // Si on est arrivé au bout: en cas de raccourcissement
               if(indice_calcul > indice_fin-1)
                 break;
-              printf("#ROOT je calcul %d \n", root_chain.moves[indice_calcul]);
-              play_move(&root_chain.plateau, root_chain.moves[indice_calcul], &root_chain.chain[indice_calcul]->plateau);
-              printf("#ROOT j'ai joué le move calcul %d \n", root_chain.moves[indice_calcul]);
-              evaluate(root_chain.chain[indice_calcul]);
-              printf("#ROOT je sors de evaluate pour le move %d \n", root_chain.moves[indice_calcul]);
-              int child_score = -root_chain.chain[indice_calcul]->result.score;
+              printf("#ROOT je calcul %d \n", root_chain->moves[indice_calcul]);
+              play_move(&root_chain->plateau, root_chain->moves[indice_calcul], &root_chain->chain[indice_calcul]->plateau);
+              printf("#ROOT j'ai joué le move calcul %d \n", root_chain->moves[indice_calcul]);
+              evaluate(root_chain->chain[indice_calcul]);
+              printf("#ROOT je sors de evaluate pour le move %d \n", root_chain->moves[indice_calcul]);
+              int child_score = root_chain->chain[indice_calcul]->result.score;
               
-                if (child_score > root_chain.result.score) 
+                if (child_score > root_chain->result.score) 
                 {
-                 root_chain.result.score = child_score;
-                 root_chain.result.best_move = root_chain.moves[indice_calcul];
-                 root_chain.result.pv_length = root_chain.chain[indice_calcul]->result.pv_length + 1;
-                 for(int j = 0; j < root_chain.chain[indice_calcul]->result.pv_length; j++)
-                  root_chain.result.PV[j+1] = root_chain.chain[indice_calcul]->result.PV[j];
-                 root_chain.result.PV[0] = root_chain.moves[indice_calcul];
+                 root_chain->result.score = child_score;
+                 root_chain->result.best_move = root_chain->moves[indice_calcul];
+                 root_chain->result.pv_length = root_chain->chain[indice_calcul]->result.pv_length + 1;
+                 for(int j = 0; j < root_chain->chain[indice_calcul]->result.pv_length; j++)
+                  root_chain->result.PV[j+1] = root_chain->chain[indice_calcul]->result.PV[j];
+                 root_chain->result.PV[0] = root_chain->moves[indice_calcul];
                 }
 
-                free(root_chain.chain[indice_calcul]);
+                free(root_chain->chain[indice_calcul]);
                 //
             }
-            free(root_chain.chain);
+            free(root_chain->chain);
           }
           #pragma omp critical 
           go = 0;
-          free(root_chain.moves);
+          free(root_chain->moves);
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
@@ -496,21 +491,21 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 
 
-void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
+void decide(chained_t* root_chain, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
 	printf("#ROOT rentre dans decide\n");
 	for (int depth = 1;; depth++) {
-		T->depth = depth;
-		T->height = 0;
-		T->alpha_start = T->alpha = -MAX_SCORE - 1;
-		T->beta = MAX_SCORE + 1;
+		root_chain->plateau.depth = depth;
+		root_chain->plateau.height = 0;
+		root_chain->plateau.alpha_start = root_chain->plateau.alpha = -MAX_SCORE - 1;
+		root_chain->plateau.beta = MAX_SCORE + 1;
     printf("=====================================\n");
-    evaluate_root(T, result, tag, NP, status, rang, mpi_tree_t, mpi_result_t);
+    evaluate_root(root_chain, tag, NP, status, rang, mpi_tree_t, mpi_result_t);
 
-    printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
-    print_pv(T, result);
+    printf("depth: %d / score: %.2f / best_move : ", root_chain->plateau.depth, 0.01 * root_chain->result.score);
+    print_pv(&root_chain->plateau, &root_chain->result);
 
-    if (DEFINITIVE(result->score)){
+    if (DEFINITIVE(root_chain->result.score)){
       printf("#ROOT sort de decide\n");
       break;
     }
@@ -588,8 +583,7 @@ int main(int argc, char **argv)
     if(rang == 0){
       int i; 
       double debut, fin;
-      tree_t T;
-      result_t result;
+      chained_t root_chain;
       if (argc < 2) {
         printf("usage: %s \"4k//4K/4P w\" (or any position in FEN)\n", argv[0]);
         exit(1);
@@ -603,23 +597,23 @@ int main(int argc, char **argv)
         init_tt();
       }
 
-      parse_FEN(argv[1], &T);
+      parse_FEN(argv[1], &root_chain.plateau);
       //print_position(&T);
       debut = my_gettimeofday();
       // nowait pour pas qu'il attend l'autre
       // un thread sert 
 
-      decide(&T, &result, tag, NP, status, rang, mpi_tree_t, mpi_result_t);
+      decide(&root_chain, tag, NP, status, rang, mpi_tree_t, mpi_result_t);
       for(i=1; i<NP; i++){
         //printf("#ROOT envoi finalize %d\n", i);
-        MPI_Send(&T, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
+        MPI_Send(&root_chain.plateau, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
       }
       fin = my_gettimeofday();  
       fprintf( stderr, "Temps total de calcul : %g sec\n", 
        fin - debut);
       fprintf( stdout, "%g\n", fin - debut);
       printf("\nDécision de la position: ");
-      switch(result.score * (2*T.side - 1)) {
+      switch(root_chain.result.score * (2*root_chain.plateau.side - 1)) {
           case MAX_SCORE: printf("blanc gagne\n"); break;
           case CERTAIN_DRAW: printf("partie nulle\n"); break;
           case -MAX_SCORE: printf("noir gagne\n"); break;
@@ -639,8 +633,6 @@ int main(int argc, char **argv)
     */
     else{
       /*** PARTIE PARTAGE ***/
-      tree_t root_proc; 
-      move_t* move;
       chained_t root_chain;
       int fini=1, source, go = 0, over, attente=0;
       int count, indice, nb_elem, indice_fin;
