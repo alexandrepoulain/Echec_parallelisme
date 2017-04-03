@@ -77,27 +77,27 @@ void evaluate(chained_t* root_chain)
     sort_moves(T, n_moves, moves);
 */
         /* évalue récursivement les positions accessibles à partir d'ici */
-  for (int i = 0; i < root_chain->n_moves; i++) 
+  for ( root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
   {
 
-    root_chain->chain[i] = calloc(1,sizeof(chained_t));
-    play_move(&root_chain->plateau, root_chain->moves[i], &root_chain->chain[i]->plateau);
+    root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
+    play_move(&root_chain->plateau, root_chain->moves[root_chain->indice], &root_chain->chain[root_chain->indice]->plateau);
 
-    evaluate(root_chain->chain[i]);
+    evaluate(root_chain->chain[root_chain->indice]);
 
-    int child_score = -root_chain->chain[i]->result.score;
+    int child_score = -root_chain->chain[root_chain->indice]->result.score;
 
     if (child_score > root_chain->result.score) 
     {
       root_chain->result.score = child_score;
-      root_chain->result.best_move = root_chain->moves[i];
-      root_chain->result.pv_length = root_chain->chain[i]->result.pv_length + 1;
-      for(int j = 0; j < root_chain->chain[i]->result.pv_length; j++)
-        root_chain->result.PV[j+1] = root_chain->chain[i]->result.PV[j];
-      root_chain->result.PV[0] = root_chain->moves[i];
+      root_chain->result.best_move = root_chain->moves[root_chain->indice];
+      root_chain->result.pv_length = root_chain->chain[root_chain->indice]->result.pv_length + 1;
+      for(int j = 0; j < root_chain->chain[root_chain->indice]->result.pv_length; j++)
+        root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
+      root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
     }
     // free chain
-    free(root_chain->chain[i]);
+    free(root_chain->chain[root_chain->indice]);
  
   if (ALPHA_BETA_PRUNING && child_score >= root_chain->plateau.beta)
     break;    
@@ -109,10 +109,26 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
+  while(root_chain->indice_fin != root_chain->n_moves){
+    ;
+  }
+  
   //printf("Je détruit\n");
   //free_chain(root_chain);
 }
 
+// Cette fonction va parcourir l'arbre de calcul et retourner le calcul possible (son adresse)
+chained_t* cherche_calcul(chained_t* node)
+{
+  int depth = 0;
+  while(node->indice == node->indice_fin-1){
+    if(depth == 5)
+      return NULL;
+    node = node->chain[node->indice_fin-1];
+    depth++;
+  }
+  return node;
+}
 
 
 
@@ -161,7 +177,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
   /* on les définis ici car ils vont être partgé entre les deux treads */
   // On alloue la mémoire nécessaire à la demande 
   // Ici on fixe la taille à 3 moves
-  int over = 0, new_over=0, termine_premiere_partie = 0, indice_calcul, indice_fin, nb_elem, nb_elem_demande;
+  int over = 0, new_over=0, termine_premiere_partie = 0, nb_elem;
   int fini = 1, go=0;
   // Initialisation du job tant qu'on peut on envoi un job à n processus
   //  Chaque processus doit commencer avec un job
@@ -170,6 +186,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
      printf("On ouvre les sections paralleles pour le maitr\n");
     #pragma omp section
     {
+      // On définit un tableau d'adresse: quand le processus enverra une partie du calcul à un autre processus
+      // A l'aide de ca tableau il connaîtra l'adresse du noeud où vient le calcul
+      chained_t* adresse[NP];
 
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
@@ -186,8 +205,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         index++;
       }
       root_chain->n_moves = nb_elem;
-      // fixe l'indice de fin pour le processus 0
-      indice_fin = nb_elem;
+      root_chain->indice_fin = root_chain->n_moves;
       printf("#ROOT reste = %d\n", reste);
       // Processus 0 peut commencer
       #pragma omp critical
@@ -240,9 +258,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       int temp_fin = 1;
       while(temp_fin)
       {
-        /*
+        
         // Un probe pour connaiître la nature du message à recevoir
-        // si le thread de calcul a fini on envoit le jeton de calcul
+        //si le thread de calcul a fini on envoit le jeton de calcul
         if(over == 1){
           // c'est un anneau donc on envoit au process suivant: ici 1
           // On place dans l'élément envoyé le rang
@@ -257,7 +275,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         if(new_over == 1){
           printf("#ROOT J'ai le résultat pour %d\n", demandeur);
           // On envoit le result au demandeur
-          MPI_Send(&new_result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
+          MPI_Send(&new_root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
           // on va se placer en émission d'un jeton de calcul
           #pragma omp critical
           over = 1;
@@ -266,7 +284,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           printf("#ROOT J'ai envoyé le résultat pour %d\n", demandeur);
         }
         
-        */
+        
         
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
         
@@ -305,21 +323,22 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             }
             printf("#ROOT bien reçu et traité %d --- il reste %d régions à venir\n", status.MPI_SOURCE, nb_regions);
           }
-          /*
+          
           // Si on reçoit une demande de calcul en réponse à un jeton
           if(tag == TAG_DEMANDE){
 
             // On traite la demande
             // on alloue la mémoire
-            new_root_chain->
             demandeur = status.MPI_SOURCE;
             printf("#ROOT je reçoie une demande de %d", demandeur);
-            // On reçoit les moves
-            MPI_Recv(&new_root_chain->moves[0],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             // Récupération du plateau 
-            MPI_Recv(&new_root_chain->plateau,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
-            #pragma omp critical
-            nb_elem_demande=1;
+            MPI_Recv(&new_root_chain.plateau,1,mpi_tree_t,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status);
+            // On reçoit les moves
+            int new_count;
+            MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
+            MPI_Get_count(&status, MPI_INT, &new_count);
+            MPI_Recv(&new_root_chain.moves[0],new_count,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
+            new_root_chain.n_moves=1;
             // On signale au tread de calcul qu'il peux y aller
             #pragma omp critical
             go = 1;
@@ -337,42 +356,53 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             if(envoyeur != rang){
               // On teste savoir si on est dans la première partie du calcul ou pas
               if(!termine_premiere_partie){
-                // On teste si il y a besoin d'envoyer du calcul
-                if(indice_calcul+2 < nb_elem){
-                  indice_fin--;
+                //On va chercher du calcul
+                chained_t* parcours = cherche_calcul(root_chain);
+                if(parcours != NULL)
+                {
+                  adresse[envoyeur]=parcours;
+                  // c'est qu'on a trouvé du calcul à une profondeur donnée
                   #pragma omp critical
                   {
-                    MPI_Send(&root_chain->moves[root_chain->n_moves-1],1,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
-                    root_chain->n_moves--;
-                    MPI_Send(&root_chain->plateau,1,mpi_tree_t, status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD);
+                    parcours->indice_fin--;
+                    MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                     // On précise qu'une nouvelle région vient d'être crée
                     nb_regions++;
                   }
                 }
-                // sinon on transmet le jeton de calcul
-                else{
+                // sinon on transmet le jeton au suivant 
+                else
+                {
                   MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                 }
               }
-              // Sinon on est déjà dans un calcul demandé par un autre processus
-              else{
-                if(indice_calcul+1 <= new_root_chain->n_moves){
-                  
-                }
-                else{
-                  // Pour l'instant on fait rien mais bientot il pourra aider le calcul aussi ici
-                  // Du coup on transmet juste
-                  MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-                }
                 
+            }
+            // Sinon on est déjà dans un calcul demandé par un autre processus
+            else
+            {
+              // ici on va chercher recursivement
+              // on définit l'addresse du noeud courant
+              chained_t* parcours = cherche_calcul(&new_root_chain);
+              if(parcours != NULL){
+                // on va envoyer au demandeur le calcul correspondant à cette adresse
+                adresse[envoyeur] = parcours;
+                // Maintenant on peut envoyer
+                #pragma omp critical
+                parcours->indice_fin--;
+                MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+              }
+              else{
+                // Du coup on transmet juste
+                MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
               }
             }
           }
-          */
         }
         #pragma omp critical
         temp_fin = fini;
-
       }
       #pragma omp critical
       printf("#ROOT fini = %d\n", temp_fin);
@@ -397,32 +427,34 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           // En gros sur chaque move on envoie evaluate 
           #pragma omp critical
           {
-            for(indice_calcul = 0; indice_calcul < nb_elem; indice_calcul++) 
+            for(root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
             {
-              root_chain->chain[indice_calcul] = calloc(1,sizeof(chained_t));
-              // Si on est arrivé au bout: en cas de raccourcissement
-              if(indice_calcul > indice_fin-1)
-                break;
-              printf("#ROOT je calcul %d \n", root_chain->moves[indice_calcul]);
-              play_move(&root_chain->plateau, root_chain->moves[indice_calcul], &root_chain->chain[indice_calcul]->plateau);
-              printf("#ROOT j'ai joué le move calcul %d \n", root_chain->moves[indice_calcul]);
-              evaluate(root_chain->chain[indice_calcul]);
-              printf("#ROOT je sors de evaluate pour le move %d \n", root_chain->moves[indice_calcul]);
-              int child_score = -root_chain->chain[indice_calcul]->result.score;
+              root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
+              root_chain->chain[root_chain->indice]->indice = 0;
+              root_chain->chain[root_chain->indice]->fini = 0;
+              printf("#ROOT je calcul %d \n", root_chain->moves[root_chain->indice]);
+              play_move(&root_chain->plateau, root_chain->moves[root_chain->indice], &root_chain->chain[root_chain->indice]->plateau);
+              printf("#ROOT j'ai joué le move calcul %d \n", root_chain->moves[root_chain->indice]);
+              evaluate(root_chain->chain[root_chain->indice]);
+              printf("#ROOT je sors de evaluate pour le move %d \n", root_chain->moves[root_chain->indice]);
+              int child_score = -root_chain->chain[root_chain->indice]->result.score;
               
                 if (child_score > root_chain->result.score) 
                 {
                  root_chain->result.score = child_score;
-                 root_chain->result.best_move = root_chain->moves[indice_calcul];
-                 root_chain->result.pv_length = root_chain->chain[indice_calcul]->result.pv_length + 1;
-                 for(int j = 0; j < root_chain->chain[indice_calcul]->result.pv_length; j++)
-                  root_chain->result.PV[j+1] = root_chain->chain[indice_calcul]->result.PV[j];
-                 root_chain->result.PV[0] = root_chain->moves[indice_calcul];
+                 root_chain->result.best_move = root_chain->moves[root_chain->indice];
+                 root_chain->result.pv_length = root_chain->chain[root_chain->indice]->result.pv_length + 1;
+                 for(int j = 0; j < root_chain->chain[root_chain->indice]->result.pv_length; j++)
+                  root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
+                 root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
                 }
-
-                free(root_chain->chain[indice_calcul]);
-                //
+                free(root_chain->chain[root_chain->indice]);
             }
+            while(root_chain->indice_fin != root_chain->n_moves){
+              ;
+            }
+            // le calcul est actuellement fini
+            root_chain->fini = 1;
             free(root_chain->chain);
           }
           #pragma omp critical 
@@ -439,7 +471,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           }
           // Ici on se met en attente du process de communication
           // On recupère et on traite les demandes
-          /*
+          
           while(temp_fin)
           {
             #pragma omp critical
@@ -447,13 +479,30 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             // le process de calcul nous signale qu'on peux y aller
             if (temp_go)
             {
-              for (indice_calcul = 0; indice_calcul < nb_elem_demande; indice_calcul++) {
-
-                play_move(&new_T, new_move, &new_child);
-
-                evaluate(&new_child, &new_child_result);
+              for (new_root_chain.indice = 0; new_root_chain.indice < new_root_chain.n_moves; new_root_chain.indice++) 
+              {
+                new_root_chain.chain[new_root_chain.indice] = calloc(1,sizeof(chained_t));
+                new_root_chain.chain[new_root_chain.indice]->indice = 0;
+                new_root_chain.chain[new_root_chain.indice]->fini = 0;
+                play_move(&new_root_chain.plateau, new_root_chain.moves[new_root_chain.indice], &new_root_chain.chain[new_root_chain.indice]->plateau);
+                evaluate(new_root_chain.chain[new_root_chain.indice]);
+                int child_score = -new_root_chain.chain[new_root_chain.indice]->result.score;
+                if (child_score > new_root_chain.result.score){
+                  new_root_chain.result.score = child_score;
+                  // on recupere le move correspondant en utilisant le tableau indice
+                  new_root_chain.result.best_move = new_root_chain.chain[new_root_chain.indice]->result.best_move;
+                  new_root_chain.result.pv_length = new_root_chain.chain[new_root_chain.indice]->result.pv_length + 1;
+                  for(int j = 0; j < new_root_chain.chain[new_root_chain.indice]->result.pv_length; j++)
+                    new_root_chain.result.PV[j+1] = new_root_chain.chain[new_root_chain.indice]->result.PV[j];
+                  new_root_chain.result.PV[0] = new_root_chain.chain[new_root_chain.indice]->result.best_move;
+                }
+                new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
+              while(new_root_chain.indice_fin != new_root_chain.n_moves){
+                ;
+              }
+              new_root_chain.chain[new_root_chain.indice]->fini = 1;
               // On a fini le calcul
               #pragma omp critical
               {
@@ -468,12 +517,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             }
             
           }
-          */
-          #pragma omp critical
-          {
-            over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
-            temp_fin = fini;
-          }
+          
         
         }
       }
@@ -637,39 +681,42 @@ int main(int argc, char **argv)
       /*** PARTIE PARTAGE ***/
       chained_t root_chain;
       int fini=1, source, go = 0, over, attente=0;
-      int count, indice, nb_elem, indice_fin;
+      int count, nb_elem;
       printf("#%d Au rapport\n", rang);
       #pragma omp parallel sections
       {
       	#pragma omp section
       	{	
+          chained_t* adresse[NP];
         	int demandeur, envoyeur, ne_pas_rentrer = 0, flag;
         	while(fini)
         	{
             // Si le thread de calcul a fini on envoit le result au demandeur
-              if(over == 1 && attente == 0)
-              {
-                printf("#%d essaye d'envoyer un result \n", rang);
-                // envoit du result
-                #pragma omp critical
-                MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
-                // On détruit ici
-                //#pragma omp critical
-                //free_chain(&root_chain);
-                /*
-                // envoit du jeton de calcul
-                int moi = rang; 
-                MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-                */
-                #pragma omp critical
-                over = 0;
-              }
+            if(over == 1 && attente == 0)
+            {
+              printf("#%d essaye d'envoyer un result à %d \n", rang, demandeur);
+              // envoit du result
+              #pragma omp critical
+              MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
+              // On détruit ici
+              //#pragma omp critical
+              //free_chain(&root_chain);
+              /*
+              // envoit du jeton de calcul
+              int moi = rang; 
+              MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+              */
+              #pragma omp critical
+              over = 0;
+            }
         		// Probe pour connaître la nature du receive (NON BLOQUANT)
             
         		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-            if(flag){
+            if(flag)
+            {
               //printf("#%d flag = %d\n",rang,flag);
               tag = status.MPI_TAG;
+              envoyeur = status.MPI_SOURCE;
           		//printf("#%d Je viens de recevoir un signal\n",rang);
     	        // Si c'est une initiation: on la prend (elle provient forcement de 0)
           		if(tag == TAG_INIT)
@@ -691,148 +738,143 @@ int main(int argc, char **argv)
             			root_chain.moves = calloc(count,sizeof(move_t));
             			MPI_Recv(&root_chain.moves[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                   // construction de la root_chain
-                  
                   root_chain.n_moves = count;
                 }
                 printf("#%d j'ai reçu les moves de ROOT \n",rang);
-
                 // on lance le calcul 
                 #pragma omp critical
                 {
-                  nb_elem = count;
-                  indice_fin =nb_elem;
+                  root_chain.indice_fin = count;
                   go = 1;
-
                   // on stocke à qui on doit renvoyer
                   demandeur = 0;
                 }
               }
-              /*
+              
               // Si on reçoit une demande
               if(tag == TAG_DEMANDE)
               {
                 printf("#%d reçoit une demande  \n", rang);
                 // on recupre le demandeur
                 demandeur = status.MPI_SOURCE;
-                // on reçoit le move
-
-                MPI_Get_count(&status, MPI_INT, &count);
-                move = (move_t*)malloc(count*sizeof(move_t));
-                MPI_Recv(&move[0], count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
                 // recoit l'arbre
-                MPI_Recv(&root_proc, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
-                nb_elem = 1;
+                MPI_Recv(&root_chain.plateau, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
+                // on reçoit le move
+                MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
+                MPI_Get_count(&status, MPI_INT, &count);
+                root_chain.moves = calloc(count,sizeof(move_t));
+                MPI_Recv(&root_chain.moves[0], count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
+                root_chain.n_moves = count;
                 go = 1;      
                }
-               */
-              /*
-                if(tag == TAG_RESULT){
-                  printf("#%d reçoit un resultat \n", rang);
-                  // On la reçoit et on la traite
-                  result_t new_child_result;
-                  MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-                  int child_score = -new_child_result.score;
-                  if (child_score > result.score) {
-                   result.score = child_score;
-                   result.best_move = new_child_result.best_move;
-                   result.pv_length = new_child_result.pv_length + 1;
-                   for(int j = 0; j < new_child_result.pv_length; j++)
-                    result.PV[j+1] = new_child_result.PV[j];
-                   result.PV[0] = new_child_result.best_move;
-                  }
-                  // On attend plus de résultat
-                  attente = 0;
-                }
-                */
-              /*
-                //Si on reçoit un jeton de calcul
-                if(tag == TAG_JETON_CALCUL){
-                  
-                  envoyeur = status.MPI_SOURCE;
-                  printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
-                  // on teste savoir si ce n'estas notre propre jeton de calcul
-                  if(envoyeur != rang){
-                  // On test où on en est
-                    if(indice+2 < nb_elem){
-                      printf("#%d envoit du calcul à %d \n", rang, envoyeur);
-                      indice_fin--;
-                      MPI_Send(&move[nb_elem-1],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                      MPI_Send(&root_proc,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                      // On attend la réponse pour pas la perdre
-                      attente = 1;
-                    }
-                    else{
-                      printf("#%d je transmet le jeton de calcul de %d à %d \n", rang, envoyeur, rang+1);
-                      // On transmet le jeton
-                      MPI_Send(&envoyeur, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-                    }
-                  }
-
-
-
-
-                }
-                */
-                // Si on a le signal de fin
-                if(tag == TAG_END)
-                  fini = 0;
-              }
-            }
-          
-          }
-          /*** THREAD CALCUL ***/
-          #pragma omp section
-          {
-            int temp_go, temp_nb_elem;
-            while(fini)
-            {
-              #pragma omp critical
-              temp_go = go;
-              if(temp_go == 1){
-                #pragma omp critical
-                {
-                  temp_nb_elem = nb_elem;
-                  root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
-                }
-                printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
-                #pragma omp critical
-                {
-                  for(indice = 0; indice < nb_elem; indice++)
-                  {
-                  
-                  
-                    root_chain.chain[indice] = calloc(1,sizeof(chained_t));
-                    
-                    printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[indice]);
-                    play_move(&root_chain.plateau, root_chain.moves[indice], &(root_chain.chain[indice]->plateau));
-                    printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[indice]);
-                    evaluate(root_chain.chain[indice]);
-                    printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[indice]);
-                    
-                    int child_score = -root_chain.chain[indice]->result.score;
-
-                    if (child_score > root_chain.chain[indice]->result.score) {
-                     root_chain.result.score = child_score;
-                     root_chain.result.best_move = root_chain.moves[indice];
-                     root_chain.result.pv_length = root_chain.chain[indice]->result.pv_length + 1;
-                     for(int j = 0; j < root_chain.chain[indice]->result.pv_length; j++)
-                      root_chain.result.PV[j+1] = root_chain.chain[indice]->result.PV[j];
-                     root_chain.result.PV[0] = root_chain.moves[indice];
-
-                    }
-                    free(root_chain.chain[indice]);
-                  }
-                  free(root_chain.chain);
-                  free(root_chain.moves);
-                  printf("#%d Fini le calcul\n", rang);
-                
-                  over = 1;
-                  go = 0;
-                }
                
+              
+              if(tag == TAG_RESULT)
+              {
+                printf("#%d reçoit un resultat de %d \n", rang, envoyeur);
+                // On la reçoit et on la traite
+                result_t new_child_result;
+                MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
+                int child_score = -new_child_result.score;
+                if (child_score > adresse[envoyeur]->result.score){
+                 adresse[envoyeur]->result.score = child_score;
+                 adresse[envoyeur]->result.best_move = new_child_result.best_move;
+                 adresse[envoyeur]->result.pv_length = new_child_result.pv_length + 1;
+                 for(int j = 0; j < new_child_result.pv_length; j++)
+                  adresse[envoyeur]->result.PV[j+1] = new_child_result.PV[j];
+                 adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
+                }
+                // On augmente l'indice de fin
+                adresse[envoyeur]->indice_fin++;
               }
+              
+              //Si on reçoit un jeton de calcul
+              if(tag == TAG_JETON_CALCUL)
+              {
+                MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,TAG_JETON_CALCUL,MPI_COMM_WORLD, &status);
+                printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
+                // ici on va chercher recursivement
+                // on définit l'addresse du noeud courant
+                chained_t* parcours = cherche_calcul(&root_chain);
+                if(parcours != NULL){
+                  // on va envoyer au demandeur le calcul correspondant à cette adresse
+                  adresse[envoyeur] = parcours;
+                  // Maintenant on peut envoyer
+                  #pragma omp critical
+                  parcours->indice_fin--;
+                  MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                  MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                }
+                else
+                {
+                  // Du coup on transmet juste
+                  MPI_Send(&envoyeur,1,MPI_INT,rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                }
+              }
+              
+              // Si on a le signal de fin
+              if(tag == TAG_END)
+                fini = 0;
             }
           }
+        }
+        /*** THREAD CALCUL ***/
+        #pragma omp section
+        {
+          int temp_go, temp_nb_elem;
+          while(fini)
+          {
+            #pragma omp critical
+            temp_go = go;
+            if(temp_go == 1){
+              #pragma omp critical
+              {
+                temp_nb_elem = nb_elem;
+                root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
+              }
+              printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
+              #pragma omp critical
+              {
+                for(root_chain.indice = 0; root_chain.indice < root_chain.indice_fin; root_chain.indice++)
+                {
+                
+                
+                  root_chain.chain[root_chain.indice] = calloc(1,sizeof(chained_t));
+                  
+                  printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[root_chain.indice]);
+                  play_move(&root_chain.plateau, root_chain.moves[root_chain.indice], &(root_chain.chain[root_chain.indice]->plateau));
+                  printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[root_chain.indice]);
+                  evaluate(root_chain.chain[root_chain.indice]);
+                  printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[root_chain.indice]);
+                  
+                  int child_score = -root_chain.chain[root_chain.indice]->result.score;
+
+                  if (child_score > root_chain.chain[root_chain.indice]->result.score) {
+                   root_chain.result.score = child_score;
+                   root_chain.result.best_move = root_chain.moves[root_chain.indice];
+                   root_chain.result.pv_length = root_chain.chain[root_chain.indice]->result.pv_length + 1;
+                   for(int j = 0; j < root_chain.chain[root_chain.indice]->result.pv_length; j++)
+                    root_chain.result.PV[j+1] = root_chain.chain[root_chain.indice]->result.PV[j];
+                   root_chain.result.PV[0] = root_chain.moves[root_chain.indice];
+
+                  }
+                  free(root_chain.chain[root_chain.indice]);
+                }
+                free(root_chain.chain);
+                free(root_chain.moves);
+                // Si il y a du calcul à recuperer
+                while(root_chain.indice_fin != root_chain.n_moves){
+                  ;
+                }
+                printf("#%d Fini le calcul\n", rang);
+              
+                over = 1;
+                go = 0;
+              }
+             
+            }
+          }
+        }
 
       }
       MPI_Finalize();
