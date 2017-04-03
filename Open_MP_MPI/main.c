@@ -408,7 +408,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               printf("#ROOT j'ai joué le move calcul %d \n", root_chain->moves[indice_calcul]);
               evaluate(root_chain->chain[indice_calcul]);
               printf("#ROOT je sors de evaluate pour le move %d \n", root_chain->moves[indice_calcul]);
-              int child_score = root_chain->chain[indice_calcul]->result.score;
+              int child_score = -root_chain->chain[indice_calcul]->result.score;
               
                 if (child_score > root_chain->result.score) 
                 {
