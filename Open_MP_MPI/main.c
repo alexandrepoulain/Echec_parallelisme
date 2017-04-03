@@ -194,6 +194,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       go = 1;
       nb_regions --; 
       int temp_reste = reste;
+      int nb_reg = 0;
       for (int i = 0; i < nb_regions ; i++) 
       {
         // SALE si on est arrivé au max du nombre de processus on arrête 
@@ -219,7 +220,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           // on remplit le tableau de moves à envoyer
           for (int j=0; j<nb_elem; j++)
           {
-            send_moves[j]=root_chain->moves[(nb_elem+1)*temp_reste+nb_elem+j];
+            send_moves[j]=root_chain->moves[(nb_elem+1)*temp_reste+nb_reg*nb_elem+j];
           }
           // on envoie au thread de comm du processus correspondant
           MPI_Send(&root_chain->plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
@@ -227,6 +228,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           // Send au processus i du move
           //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves[0], nb_elem, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
+          nb_reg++;
         }
       }
       // On retire la région dont le maître s'occupe
