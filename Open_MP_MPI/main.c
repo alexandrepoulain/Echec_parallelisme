@@ -143,14 +143,16 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
   compute_attack_squares(&root_chain.plateau);
 
-        /* profondeur max atteinte ? si oui, évaluation heuristique */
+  /* profondeur max atteinte ? si oui, évaluation heuristique */
   if (root_chain.plateau.depth == 0) {
     root_chain.result.score = (2 * root_chain.plateau.side - 1) * heuristic_evaluation(&root_chain.plateau);
     return;
   }
-
-  root_chain.n_moves = generate_legal_moves(&root_chain.plateau, &root_chain.moves[0]);
-  root_chain.chain = calloc(root_chain.n_moves,sizeof(chained_t*));
+  #pragma omp critical
+  {
+    root_chain.n_moves = generate_legal_moves(&root_chain.plateau, &root_chain.moves[0]);
+    root_chain.chain = calloc(root_chain.n_moves,sizeof(chained_t*));
+  }
 
         /* absence de coups légaux : pat ou mat */
   if (root_chain.n_moves == 0) {
