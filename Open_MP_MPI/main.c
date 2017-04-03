@@ -109,8 +109,6 @@ void evaluate(chained_t* root_chain)
   
   }
   //printf("Je détruit\n");
-  free(root_chain->moves);
-  free(root_chain->chain);
   //free_chain(root_chain);
 }
 
@@ -284,7 +282,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             nb_regions--;
             #pragma omp critical
             {
-              int child_score = child_result.score;
+              int child_score = -child_result.score;
               if (child_score > root_chain.result.score){
                 printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
                 root_chain.result.score = child_score;
@@ -825,7 +823,10 @@ int main(int argc, char **argv)
                      root_chain.result.PV[0] = root_chain.moves[indice];
 
                     }
+                    free(root_chain.chain[indice]);
                   }
+                  free(root_chain.chain);
+                  free(root_chain.moves);
                   printf("#%d Fini le calcul\n", rang);
                 
                   over = 1;
