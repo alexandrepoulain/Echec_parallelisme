@@ -242,7 +242,7 @@ void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status)
 int main(int argc, char **argv)
 {  
 	
-
+  printf("test\n");
   /* Init MPI */
   int NP, rang, tag = 10;
   MPI_Init(&argc,&argv);
