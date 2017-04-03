@@ -268,6 +268,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           printf("#ROOT j'envoie mon jeton de calcul\n");
           int rang_envoyeur = 0;
           MPI_Send(&rang_envoyeur,1, MPI_INT, 1,TAG_JETON_CALCUL, MPI_COMM_WORLD);
+          #pragma omp critical
           over = 0;
         }
         // Si le thread de calcul a fini sa demande
