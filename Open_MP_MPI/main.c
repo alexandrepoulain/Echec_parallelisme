@@ -284,7 +284,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
             nb_regions--;
             #pragma omp critical
             {
-              int child_score = -child_result.score;
+              int child_score = child_result.score;
               if (child_score > root_chain.result.score){
                 printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
                 root_chain.result.score = child_score;
