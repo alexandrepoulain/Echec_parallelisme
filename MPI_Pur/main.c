@@ -194,7 +194,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     result_t child_result;
     MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
     job_sent--;
-    int child_score = -child_result.score;
+    int child_score = child_result.score;
     if (child_score > result->score){
       result->score = child_score;
       // on recupere le move correspondant en utilisant le tableau indice
