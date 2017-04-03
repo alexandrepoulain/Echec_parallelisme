@@ -194,7 +194,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       go = 1;
       nb_regions --; 
       int temp_reste = reste;
-      int nb_reg = 0;
+      int nb_reg = 1;
       for (int i = 0; i < nb_regions ; i++) 
       {
         // SALE si on est arrivé au max du nombre de processus on arrête 
