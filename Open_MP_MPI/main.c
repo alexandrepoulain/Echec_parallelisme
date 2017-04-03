@@ -269,7 +269,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           int rang_envoyeur = 0;
           MPI_Send(&rang_envoyeur,1, MPI_INT, 1,TAG_JETON_CALCUL, MPI_COMM_WORLD);
           over = 0;
-          go = 1;
         }
         // Si le thread de calcul a fini sa demande
         if(new_over == 1){
@@ -352,6 +351,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             // on recupere l'envoyeur
             int envoyeur;
             MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,TAG_JETON_CALCUL,MPI_COMM_WORLD, &status);
+            printf("#ROOT J'ai reçu le jeton de calcul de %d \n", envoyeur);
             // on teste savoir si ce n'estas notre propre jeton de calcul
             if(envoyeur != rang){
               // On teste savoir si on est dans la première partie du calcul ou pas
@@ -360,6 +360,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 chained_t* parcours = cherche_calcul(root_chain);
                 if(parcours != NULL)
                 {
+                  printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                   adresse[envoyeur]=parcours;
                   // c'est qu'on a trouvé du calcul à une profondeur donnée
                   #pragma omp critical
@@ -374,6 +375,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 // sinon on transmet le jeton au suivant 
                 else
                 {
+                  printf("#ROOT pas de calcul je transmet\n");
                   MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                 }
               }
@@ -386,6 +388,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               // on définit l'addresse du noeud courant
               chained_t* parcours = cherche_calcul(&new_root_chain);
               if(parcours != NULL){
+                printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                 // on va envoyer au demandeur le calcul correspondant à cette adresse
                 adresse[envoyeur] = parcours;
                 // Maintenant on peut envoyer
@@ -396,6 +399,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               }
               else{
                 // Du coup on transmet juste
+                printf("#ROOT pas de calcul je transmet\n");
                 MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
               }
             }
@@ -479,6 +483,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             // le process de calcul nous signale qu'on peux y aller
             if (temp_go)
             {
+              printf("#ROOT je rentre dans le nouveau calcul \n");
               for (new_root_chain.indice = 0; new_root_chain.indice < new_root_chain.n_moves; new_root_chain.indice++) 
               {
                 new_root_chain.chain[new_root_chain.indice] = calloc(1,sizeof(chained_t));
@@ -499,9 +504,15 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
+              int test = 1;
               while(new_root_chain.indice_fin != new_root_chain.n_moves){
-                ;
+                if(test == 1){
+                  printf("#ROOT j'attends le reste du calcul\n");
+                  test = 0;
+                }
+                
               }
+              printf("#ROOT fini d'attendre\n");
               new_root_chain.chain[new_root_chain.indice]->fini = 1;
               // On a fini le calcul
               #pragma omp critical
@@ -754,7 +765,7 @@ int main(int argc, char **argv)
               // Si on reçoit une demande
               if(tag == TAG_DEMANDE)
               {
-                printf("#%d reçoit une demande  \n", rang);
+                printf("#%d reçoit une demande de calcul de %d  \n", rang, envoyeur);
                 // on recupre le demandeur
                 demandeur = status.MPI_SOURCE;
                 // recoit l'arbre
@@ -797,6 +808,7 @@ int main(int argc, char **argv)
                 // on définit l'addresse du noeud courant
                 chained_t* parcours = cherche_calcul(&root_chain);
                 if(parcours != NULL){
+                  printf("#%d envoie du calcul à %d\n",rang, envoyeur);
                   // on va envoyer au demandeur le calcul correspondant à cette adresse
                   adresse[envoyeur] = parcours;
                   // Maintenant on peut envoyer
@@ -807,6 +819,7 @@ int main(int argc, char **argv)
                 }
                 else
                 {
+                  printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
                   // Du coup on transmet juste
                   MPI_Send(&envoyeur,1,MPI_INT,rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                 }
