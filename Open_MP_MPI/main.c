@@ -79,6 +79,7 @@ void evaluate(chained_t* root_chain)
         /* évalue récursivement les positions accessibles à partir d'ici */
   for (int i = 0; i < root_chain->n_moves; i++) 
   {
+
     root_chain->chain[i] = calloc(1,sizeof(chained_t));
     play_move(&root_chain->plateau, root_chain->moves[i], &root_chain->chain[i]->plateau);
 
@@ -295,6 +296,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
               }
               root_chain.plateau.alpha = MAX(root_chain.plateau.alpha, child_score);
             }
+            printf("#ROOT receive score = %d \n", child_result.score);
+            printf("#ROOT main_score = %d \n", root_chain.result.score);
               // Si toutes les régions ont répondu on arrête
             if(nb_regions == 0)
             {
