@@ -262,6 +262,11 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       while(temp_fin)
       {
         
+        
+        
+        
+        
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
         // Un probe pour connaiître la nature du message à recevoir
         //si le thread de calcul a fini on envoit le jeton de calcul
         if(over == 1){
@@ -286,11 +291,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           new_over = 0;
           printf("#ROOT J'ai envoyé le résultat pour %d\n", demandeur);
         }
-        
-        
-        
-        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-        
         if (flag)
         {
           printf("#ROOT je reçois un message de %d, requête de type %d, avec le flag %d\n", status.MPI_SOURCE, status.MPI_TAG, flag);
@@ -526,7 +526,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             }
             #pragma omp critical
             {
-              over = 1; //signale au processus de calcul qu'il peut envoyer le jeton
               temp_fin = fini;
             }
             
