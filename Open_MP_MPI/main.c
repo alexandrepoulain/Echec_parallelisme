@@ -427,7 +427,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           }
           #pragma omp critical 
           go = 0;
-          free(root_chain->moves);
+          //free(root_chain->moves);
           printf("#ROOT j'ai fini la première partie du calcul\n");
           /*** Première partie du calcul fini ***/
           #pragma omp critical
