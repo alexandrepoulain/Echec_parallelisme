@@ -115,6 +115,8 @@ void evaluate(chained_t* root_chain)
   while(root_chain->indice_fin != root_chain->n_moves){
     ;
   }
+  free(root_chain->chain);
+  free(root_chain->moves);
   
   //printf("Je détruit\n");
   //free_chain(root_chain);
@@ -487,6 +489,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             // le calcul est actuellement fini
             root_chain->fini = 1;
             free(root_chain->chain);
+            free(root_chain->moves);
           
           #pragma omp critical 
           go = 0;
@@ -832,12 +835,11 @@ int main(int argc, char **argv)
                     {
                       chained_t* parcours = cherche_calcul(&root_chain);
 
-                      if(parcours != NULL  ){
+                      if(parcours != NULL){
                         // on va envoyer au demandeur le calcul correspondant à cette adresse
                         adresse[envoyeur] = parcours;
                         // Maintenant on peut envoyer
                         
-                        parcours->indice_fin--;
                         MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
@@ -890,10 +892,7 @@ int main(int argc, char **argv)
               {
                 for(root_chain.indice = 0; root_chain.indice < root_chain.indice_fin; root_chain.indice++)
                 {
-                
-                
                   root_chain.chain[root_chain.indice] = calloc(1,sizeof(chained_t));
-                  
                   printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[root_chain.indice]);
                   play_move(&root_chain.plateau, root_chain.moves[root_chain.indice], &(root_chain.chain[root_chain.indice]->plateau));
                   printf("#%d entre dans evaluate pour le move %d\n", rang, root_chain.moves[root_chain.indice]);
