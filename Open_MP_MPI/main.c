@@ -735,7 +735,7 @@ int main(int argc, char **argv)
               
               // envoit du jeton de calcul
               int moi = rang; 
-              MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+              MPI_Send(&moi, 1, MPI_INT, (rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
               
               #pragma omp critical
               over = 0;
