@@ -133,6 +133,7 @@ chained_t* cherche_calcul(chained_t* node)
   if(depth == 0)
     return NULL;
   else{
+    printf("here\n");
     if(node->indice < node->indice_fin-2){
       printf("profondeur = %d\n", depth);
       #pragma omp critical
@@ -144,8 +145,6 @@ chained_t* cherche_calcul(chained_t* node)
     }
     
   }
-
-    
 }
 
 
