@@ -101,7 +101,7 @@ void evaluate(chained_t* root_chain)
       root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
     }
     // free chain
-    free(root_chain->chain[root_chain->indice]);
+    //free(root_chain->chain[root_chain->indice]);
  
   if (ALPHA_BETA_PRUNING && child_score >= root_chain->plateau.beta)
     break;    
@@ -113,6 +113,7 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
+  root_chain->fini = 1;
   
   while(root_chain->indice_fin != root_chain->n_moves){
     ;
@@ -552,6 +553,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
+              new_root_chain.chain[new_root_chain.indice]->fini = 1;
               int test = 1;
               while(new_root_chain.indice_fin != new_root_chain.n_moves){
                 if(test == 1){
@@ -561,7 +563,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 
               }
               printf("#ROOT fini d'attendre\n");
-              new_root_chain.chain[new_root_chain.indice]->fini = 1;
+              
               // On a fini le calcul
               #pragma omp critical
               {
@@ -940,8 +942,7 @@ int main(int argc, char **argv)
                   }
                   free(root_chain.chain[root_chain.indice]);
                 }
-                free(root_chain.chain);
-                free(root_chain.moves);
+                root_chain.fini = 1;
                 // Si il y a du calcul à recuperer
                 while(root_chain.indice_fin != root_chain.n_moves){
                   ;
