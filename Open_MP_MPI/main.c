@@ -456,8 +456,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         {
           printf("#ROOT je commence le calcul\n");
           // En gros sur chaque move on envoie evaluate 
-          #pragma omp critical
-          {
+          
             for(root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
             {
               root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
@@ -487,7 +486,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             // le calcul est actuellement fini
             root_chain->fini = 1;
             free(root_chain->chain);
-          }
+          
           #pragma omp critical 
           go = 0;
           //free(root_chain->moves);
@@ -759,9 +758,7 @@ int main(int argc, char **argv)
           		{
   		          printf("#%d je reçois de ROOT \n",rang);
           			// Rceive tree
-                #pragma omp critical
           			MPI_Recv(&root_chain.plateau, 1, mpi_tree_t,0 , TAG_INIT, MPI_COMM_WORLD, &status);
-
                 printf("#%d j'ai reçu l'arbre de ROOT \n",rang);
           			// Receive les moves
           			// Il faut connaître le nombre de moves à recevoir
@@ -775,12 +772,8 @@ int main(int argc, char **argv)
             			MPI_Recv(&root_chain.moves[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                   // construction de la root_chain
                   root_chain.n_moves = count;
-                }
-                printf("#%d j'ai reçu les moves de ROOT \n",rang);
-                // on lance le calcul 
-                #pragma omp critical
-                {
                   root_chain.indice_fin = count;
+                  printf("#%d j'ai reçu les moves de ROOT \n",rang);
                   go = 1;
                   // on stocke à qui on doit renvoyer
                   demandeur = 0;
@@ -834,17 +827,26 @@ int main(int argc, char **argv)
                   // on définit l'addresse du noeud courant
                   #pragma omp critical
                   {
-                    chained_t* parcours = cherche_calcul(&root_chain);
+                    if(root_chain.plateau.depth > 4)
+                    {
+                      chained_t* parcours = cherche_calcul(&root_chain);
 
-                    if(parcours != NULL && root_chain.plateau.depth > 4){
-                      // on va envoyer au demandeur le calcul correspondant à cette adresse
-                      adresse[envoyeur] = parcours;
-                      // Maintenant on peut envoyer
-                      
-                      parcours->indice_fin--;
-                      MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                      MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                      printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
+                      if(parcours != NULL  ){
+                        // on va envoyer au demandeur le calcul correspondant à cette adresse
+                        adresse[envoyeur] = parcours;
+                        // Maintenant on peut envoyer
+                        
+                        parcours->indice_fin--;
+                        MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                        MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                        printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
+                      }
+                      else
+                      {
+                        printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
+                        // Du coup on transmet juste
+                        MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                      }
                     }
                     else
                     {
