@@ -135,10 +135,12 @@ chained_t* cherche_calcul(chained_t* node)
     printf("indice_fin = %d\n", node->indice_fin);
     if(node->n_moves == 0)
       return NULL;
-    if(node->chain[(node->indice_fin)-1]->bien_def != 1){
+    if(node->bien_def == 1 && node->indice < node->indice_fin-1){
       node->indice_fin--;
-      return node->chain[node->indice_fin-1];
+      return node;
     }
+    if(node->bien_def != 1)
+      return NULL;
     node = node->chain[node->indice_fin-1];
 
     depth++;
