@@ -132,18 +132,17 @@ chained_t* cherche_calcul(chained_t* node)
   while(node->indice == node->indice_fin && node->fini != 1){
     if(depth >= 5 || node->chain[node->indice_fin-1]->bien_def != 1)
       break;
+    printf("bien_def = %d\n",  node->bien_def);
+  printf("indice = %d\n", node->indice);
+    printf("indice_fin = %d\n", node->indice_fin);
     node = node->chain[node->indice_fin-1];
-    
+
     depth++;
   }
   printf("depth = %d\n", depth);
-  printf("bien_def = %d\n",  node->bien_def);
-  printf("indice = %d\n", node->indice);
-    printf("indice_fin = %d\n", node->indice_fin);
+  
   if(node->indice < node->indice_fin && node->bien_def == 1){
-    
     node->indice_fin--;
-
     printf("profondeur = %d\n", depth);
     printf("move = %d\n", node->moves[node->indice_fin]);
     return node;
