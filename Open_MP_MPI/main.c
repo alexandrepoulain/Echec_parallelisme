@@ -143,6 +143,7 @@ chained_t* cherche_calcul(chained_t* node)
 
     depth++;
   }
+  return NULL;
   
 }
 
