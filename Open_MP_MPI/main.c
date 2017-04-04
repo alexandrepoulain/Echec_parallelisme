@@ -115,9 +115,12 @@ void evaluate(chained_t* root_chain)
   
   }
   root_chain->fini = 1;
-  
+  int test = 0;
   while(root_chain->indice_fin != root_chain->n_moves){
-    ;
+    if(test == 0){
+      printf("attend un resultat dans evaluate \n");
+      test++;
+    }
   }
   for(int i = 0; i<root_chain->n_moves; i++)
     free(root_chain->chain[i]);
