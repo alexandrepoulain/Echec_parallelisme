@@ -67,6 +67,7 @@ void evaluate(chained_t* root_chain)
 
   root_chain->n_moves = generate_legal_moves(&root_chain->plateau, &root_chain->moves[0]);
   root_chain->indice_fin = root_chain->n_moves;
+  root_chain->fixe = root_chain->n_moves;
   root_chain->indice = 0;
   root_chain->bien_def = 1;
   root_chain->fini = 0;
@@ -82,7 +83,7 @@ void evaluate(chained_t* root_chain)
     sort_moves(T, n_moves, moves);
 */
         /* évalue récursivement les positions accessibles à partir d'ici */
-  for ( root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
+  for ( root_chain->indice = 0; root_chain->indice < root_chain->fixe; root_chain->indice++) 
   {
 
     root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
@@ -139,28 +140,30 @@ chained_t* cherche_calcul(chained_t* node)
 {
   int depth = 0;
   printf("fini = %d\n",  node->fini);
-  while(node->indice == node->indice_fin-1 && node->fini != 1){
+  while(node->indice == node->fixe-1 && node->fini != 1){
     printf("bien_def = %d\n",  node->bien_def);
     printf("indice = %d\n", node->indice);
-    printf("indice_fin = %d\n", node->indice_fin);
+    printf("fixe = %d\n", node->fixe);
     if(node->n_moves == 0 || depth >= 5)
       return NULL;
-    if(node->bien_def == 1 && node->indice < node->indice_fin-1){
+    if(node->bien_def == 1 && node->indice < node->fixe-1){
       node->indice_fin--;
+      node->fixe--;
       return node;
     }
     if(node->bien_def != 1)
       return NULL;
-    node = node->chain[node->indice_fin-1];
+    node = node->chain[node->fixe-1];
 
     depth++;
   }
   printf("bien_def = %d\n",  node->bien_def);
     printf("indice = %d\n", node->indice);
-    printf("indice_fin = %d\n", node->indice_fin);
+    printf("fixe = %d\n", node->fixe);
     printf("depth = %d\n", depth);
-  if(node->bien_def == 1 && node->indice < node->indice_fin-1){
+  if(node->bien_def == 1 && node->indice < node->fixe-1){
       node->indice_fin--;
+      node->fixe--;
       return node;
     }
   return NULL;
@@ -244,6 +247,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       }
       root_chain->n_moves = nb_elem;
       root_chain->indice_fin = root_chain->n_moves;
+      root_chain->fixe = root_chain->n_moves;;
       root_chain->indice = 0;
       root_chain->bien_def=1;
       printf("#ROOT reste = %d\n", reste);
@@ -384,8 +388,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
             MPI_Get_count(&status, MPI_INT, &new_count);
             MPI_Recv(&new_root_chain.moves[0],new_count,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
-            new_root_chain.n_moves=1;
-            new_root_chain.indice_fin=1;
+            new_root_chain.n_moves=new_count;
+            new_root_chain.indice_fin=new_count;
+            new_root_chain.fixe = new_count;
             new_root_chain.indice=0;
             new_root_chain.bien_def=1;
             // On signale au tread de calcul qu'il peux y aller
@@ -415,9 +420,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                   // c'est qu'on a trouvé du calcul à une profondeur donnée
                   #pragma omp critical
                   {
-                    parcours->indice_fin--;
                     MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                    MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                     // On précise qu'une nouvelle région vient d'être crée
                     nb_regions++;
                   }
@@ -444,7 +448,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                     
                     MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                     printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
-                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                    MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                     
                   }
                   else{
@@ -498,7 +502,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           #pragma omp critical
           {
             root_chain->fini = 0;
-            for(root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
+            for(root_chain->indice = 0; root_chain->indice < root_chain->fixe; root_chain->indice++) 
             {
               root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
               root_chain->chain[root_chain->indice]->indice = 0;
@@ -822,6 +826,7 @@ int main(int argc, char **argv)
                   // construction de la root_chain
                   root_chain.n_moves = count;
                   root_chain.indice_fin = count;
+                  root_chain.fixe = count;
                   root_chain.indice=0;
                   root_chain.bien_def=1;
                   printf("#%d j'ai reçu les moves de ROOT %d \n",rang, root_chain.moves[0]);
@@ -850,6 +855,7 @@ int main(int argc, char **argv)
                 printf("#%d j'ai reçu %d moves de %d  \n", rang, count,demandeur);
                 root_chain.n_moves = count;
                 root_chain.indice_fin=count;
+                root_chain.fixe=count;
                 root_chain.indice=0;
                 root_chain.bien_def=1;
                 go = 1;  
@@ -875,7 +881,7 @@ int main(int argc, char **argv)
                 }
                 // On augmente l'indice de fin
                 adresse[envoyeur]->indice_fin++;
-                printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice);
+                printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
               }
               
               //Si on reçoit un jeton de calcul
@@ -899,7 +905,7 @@ int main(int argc, char **argv)
                         // Maintenant on peut envoyer
                         
                         MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                        MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                        MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
                       }
                       else
@@ -946,7 +952,7 @@ int main(int argc, char **argv)
               }
               printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
               
-                for(root_chain.indice = 0; root_chain.indice < root_chain.indice_fin; root_chain.indice++)
+                for(root_chain.indice = 0; root_chain.indice < root_chain.fixe; root_chain.indice++)
                 {
                   root_chain.chain[root_chain.indice] = calloc(1,sizeof(chained_t));
                   printf("#%d test calcul avant evaluate %d\n", rang, root_chain.moves[root_chain.indice]);
