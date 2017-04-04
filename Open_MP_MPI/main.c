@@ -114,7 +114,7 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
-  #pragma omp critical
+  //#pragma omp critical
   root_chain->fini = 1;
   int test = 0;
   while(root_chain->indice_fin != root_chain->n_moves){
