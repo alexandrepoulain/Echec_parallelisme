@@ -828,14 +828,14 @@ int main(int argc, char **argv)
             // Si le thread de calcul a fini on envoit le result au demandeur
             if(over == 1 && attente == 0)
             {
-              printf("#%d essaye d'envoyer un result à %d \n", rang, demandeur);
+              printf("#%d essaye d'envoyer un result à %d en sous traitance \n", rang, demandeur);
               // envoit du result
               if(sous_traitance_0 == 1){
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
                 sous_traitance_0 = 0;
               }
               else{
-                #pragma omp critical
+                printf("#%d essaye d'envoyer un result à %d \n", rang, demandeur);
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
               }
               
