@@ -835,7 +835,7 @@ int main(int argc, char **argv)
                 MPI_Recv(&root_chain.plateau, 1, mpi_tree_t, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
                 // on reçoit le move
                 printf("#%d j'ai reçu l'arbre de %d  \n", rang, demandeur);
-                MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
+                MPI_Probe(status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD, &status);
                 MPI_Get_count(&status, MPI_INT, &count);
                 printf("#%d je dois recevoir %d moves de %d\n", rang, count,demandeur);
                 root_chain.moves = calloc(count,sizeof(move_t));
