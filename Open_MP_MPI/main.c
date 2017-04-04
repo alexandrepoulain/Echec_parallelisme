@@ -833,7 +833,7 @@ int main(int argc, char **argv)
                   // on définit l'addresse du noeud courant
                   chained_t* parcours = cherche_calcul(&root_chain);
                   if(parcours != NULL){
-                    printf("#%d envoie du calcul à %d\n",rang, envoyeur);
+                    printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
                     // on va envoyer au demandeur le calcul correspondant à cette adresse
                     adresse[envoyeur] = parcours;
                     // Maintenant on peut envoyer
