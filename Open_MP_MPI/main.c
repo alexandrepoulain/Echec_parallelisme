@@ -456,7 +456,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                         MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         // On précise qu'une nouvelle région vient d'être crée
-                        nb_regions++;
                       
                     }
                     else
