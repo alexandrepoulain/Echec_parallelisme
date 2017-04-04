@@ -519,15 +519,18 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         {
           printf("#ROOT je commence le calcul\n");
           // En gros sur chaque move on envoie evaluate 
-          #pragma omp critical
-          {
+          
             root_chain->fini = 0;
             for(root_chain->indice = 0; root_chain->indice < root_chain->fixe; root_chain->indice++) 
             {
-              root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
-              root_chain->chain[root_chain->indice]->indice = 0;
-              root_chain->chain[root_chain->indice]->fini = 0;
+              #pragma omp critical
+              {
+                root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
+                root_chain->chain[root_chain->indice]->indice = 0;
+                root_chain->chain[root_chain->indice]->fini = 0;
+              }
               printf("#ROOT je calcul %d \n", root_chain->moves[root_chain->indice]);
+              #pragma omp critical
               play_move(&root_chain->plateau, root_chain->moves[root_chain->indice], &root_chain->chain[root_chain->indice]->plateau);
               printf("#ROOT j'ai joué le move calcul %d \n", root_chain->moves[root_chain->indice]);
               evaluate(root_chain->chain[root_chain->indice]);
@@ -536,12 +539,15 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               
                 if (child_score > root_chain->result.score) 
                 {
-                 root_chain->result.score = child_score;
-                 root_chain->result.best_move = root_chain->moves[root_chain->indice];
-                 root_chain->result.pv_length = root_chain->chain[root_chain->indice]->result.pv_length + 1;
-                 for(int j = 0; j < root_chain->chain[root_chain->indice]->result.pv_length; j++)
-                  root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
-                 root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
+                  #pragma omp critical
+                  {
+                   root_chain->result.score = child_score;
+                   root_chain->result.best_move = root_chain->moves[root_chain->indice];
+                   root_chain->result.pv_length = root_chain->chain[root_chain->indice]->result.pv_length + 1;
+                   for(int j = 0; j < root_chain->chain[root_chain->indice]->result.pv_length; j++)
+                    root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
+                   root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
+                  }
                 }
                 //free(root_chain->chain[root_chain->indice]);
             }
@@ -554,7 +560,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               free(root_chain->chain[i]);
             free(root_chain->chain);
             
-          }
+          
           #pragma omp critical 
           go = 0;
           //free(root_chain->moves);
