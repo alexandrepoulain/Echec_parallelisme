@@ -69,7 +69,6 @@ void evaluate(chained_t* root_chain)
   root_chain->indice_fin = root_chain->n_moves;
   root_chain->indice = 0;
   root_chain->bien_def = 1;
-  #pragma omp critical
   root_chain->fini = 0;
   root_chain->chain = calloc(root_chain->n_moves,sizeof(chained_t*));
 
@@ -115,7 +114,7 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
-  #pragma omp critical
+  //#pragma omp critical
   root_chain->fini = 1;
   int test = 0;
   while(root_chain->indice_fin != root_chain->n_moves){
@@ -138,12 +137,7 @@ chained_t* cherche_calcul(chained_t* node)
 {
   int depth = 0;
   printf("fini = %d\n",  node->fini);
-  int temp_fin;
-  #pragma omp critical
-  {
-    temp_fin = node->fini;
-  }
-  while(node->indice == node->indice_fin-1 && temp_fin!= 1){
+  while(node->indice == node->indice_fin-1 && node->fini != 1){
     printf("bien_def = %d\n",  node->bien_def);
     printf("indice = %d\n", node->indice);
     printf("indice_fin = %d\n", node->indice_fin);
@@ -156,8 +150,7 @@ chained_t* cherche_calcul(chained_t* node)
     if(node->bien_def != 1)
       return NULL;
     node = node->chain[node->indice_fin-1];
-    #pragma omp critical
-    temp_fin = node->fini;
+
     depth++;
   }
   printf("bien_def = %d\n",  node->bien_def);
@@ -530,7 +523,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               ;
             }
             // le calcul est actuellement fini
-            
             root_chain->fini = 1;
             for(int i = 0; i<root_chain->n_moves; i++)
               free(root_chain->chain[i]);
@@ -579,7 +571,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
-              #pragma omp critical
               new_root_chain.fini = 1;
               int test = 1;
               while(new_root_chain.indice_fin != new_root_chain.n_moves){
@@ -882,6 +873,7 @@ int main(int argc, char **argv)
                 }
                 // On augmente l'indice de fin
                 adresse[envoyeur]->indice_fin++;
+                printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves);
               }
               
               //Si on reçoit un jeton de calcul
@@ -892,7 +884,8 @@ int main(int argc, char **argv)
                   printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
                   // ici on va chercher recursivement
                   // on définit l'addresse du noeud courant
-                  
+                  #pragma omp critical
+                  {
                     if(root_chain.plateau.depth > 4)
                     {
                       chained_t* parcours = cherche_calcul(&root_chain);
@@ -920,7 +913,7 @@ int main(int argc, char **argv)
                       // Du coup on transmet juste
                       MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
-                  
+                  }
                 }
                 // Sinon on récupère notre propre jeton de calcul et on informe le maître qu'on est au rapport
                 else{
