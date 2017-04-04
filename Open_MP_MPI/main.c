@@ -12,6 +12,7 @@
 #define TAG_DEMANDE 3
 #define TAG_RESULT_DEMANDE 4
 #define TAG_END 5
+#define TAG_RAPPORT 6
 
 unsigned long long int node_searched = 0;
 
@@ -192,6 +193,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       // On définit un tableau d'adresse: quand le processus enverra une partie du calcul à un autre processus
       // A l'aide de ca tableau il connaîtra l'adresse du noeud où vient le calcul
       chained_t* adresse[NP];
+      int* test_fin = calloc(NP, sizeof(int));
+      test_fin[0]=1;
 
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
@@ -258,14 +261,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       /*** Première partie de l'initialisation terminée ***/
       /*** Attente que le processus de calcul est fini ***/
       int flag;
-      int temp_fin = 1;
+      int temp_fin = 1, new_fini = 1;
       while(temp_fin)
       {
-        
-        
-        
-        
-        
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
         // Un probe pour connaiître la nature du message à recevoir
         //si le thread de calcul a fini on envoit le jeton de calcul
@@ -326,7 +324,16 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             }
             printf("#ROOT bien reçu et traité %d --- il reste %d régions à venir\n", status.MPI_SOURCE, nb_regions);
           }
-          
+          // On reçoit un signal de rapport
+          if(tag==TAG_RAPPORT){
+            printf("#ROOT je reçoit un rapport de %d\n", status.MPI_SOURCE);
+            int a;
+            MPI_Recv(&a, 1, MPI_INT, status.MPI_SOURCE, TAG_RAPPORT, MPI_COMM_WORLD, &status);
+            test_fin[status.MPI_SOURCE]=1;
+
+          }
+
+
           // Si on reçoit une demande de calcul en réponse à un jeton
           if(tag == TAG_DEMANDE){
 
@@ -409,8 +416,18 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             }
           }
         }
-        #pragma omp critical
-        temp_fin = fini;
+        if(fini == 0){
+          int test = 0;
+          for(int g = 0; g < NP; g++){
+            if(test_fin[g] == 0)
+              test = 1;
+          }
+          if(test==0)
+            #pragma omp critical
+            temp_fin = 0;
+        }
+        
+        
       }
       #pragma omp critical
       printf("#ROOT fini = %d\n", temp_fin);
@@ -805,25 +822,33 @@ int main(int argc, char **argv)
               if(tag == TAG_JETON_CALCUL)
               {
                 MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,TAG_JETON_CALCUL,MPI_COMM_WORLD, &status);
-                printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
-                // ici on va chercher recursivement
-                // on définit l'addresse du noeud courant
-                chained_t* parcours = cherche_calcul(&root_chain);
-                if(parcours != NULL){
-                  printf("#%d envoie du calcul à %d\n",rang, envoyeur);
-                  // on va envoyer au demandeur le calcul correspondant à cette adresse
-                  adresse[envoyeur] = parcours;
-                  // Maintenant on peut envoyer
-                  #pragma omp critical
-                  parcours->indice_fin--;
-                  MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                  MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                if(envoyeur != rang){
+                  printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
+                  // ici on va chercher recursivement
+                  // on définit l'addresse du noeud courant
+                  chained_t* parcours = cherche_calcul(&root_chain);
+                  if(parcours != NULL){
+                    printf("#%d envoie du calcul à %d\n",rang, envoyeur);
+                    // on va envoyer au demandeur le calcul correspondant à cette adresse
+                    adresse[envoyeur] = parcours;
+                    // Maintenant on peut envoyer
+                    #pragma omp critical
+                    parcours->indice_fin--;
+                    MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                  }
+                  else
+                  {
+                    printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
+                    // Du coup on transmet juste
+                    MPI_Send(&envoyeur,1,MPI_INT,rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                  }
                 }
-                else
-                {
-                  printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
-                  // Du coup on transmet juste
-                  MPI_Send(&envoyeur,1,MPI_INT,rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                // Sinon on récupère notre propre jeton de calcul et on informe le maître qu'on est au rapport
+                else{
+                  printf("#%d j'informe le maître que je suis au rapport\n", rang);
+                  int a = 0;
+                  MPI_Send(&a, 1, MPI_INT, 0, TAG_RAPPORT, MPI_COMM_WORLD);
                 }
               }
               
