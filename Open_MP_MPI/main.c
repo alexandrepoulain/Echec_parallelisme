@@ -408,7 +408,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               if(!termine_premiere_partie){
                 //On va chercher du calcul
                 chained_t* parcours = cherche_calcul(root_chain);
-                if(parcours != NULL && root_chain->plateau.depth > 4)
+                if(parcours != NULL && root_chain->plateau.depth > 7)
                 {
                   printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                   adresse[envoyeur]=parcours;
@@ -434,7 +434,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               {
                 // ici on va chercher recursivement
                 // on définit l'addresse du noeud courant
-                if(new_root_chain.plateau.depth > 4){
+                if(new_root_chain.plateau.depth > 7){
                   chained_t* parcours = cherche_calcul(&new_root_chain);
                   if(parcours != NULL){
                     
@@ -888,7 +888,7 @@ int main(int argc, char **argv)
                   // on définit l'addresse du noeud courant
                   #pragma omp critical
                   {
-                    if(root_chain.plateau.depth > 4)
+                    if(root_chain.plateau.depth > 7)
                     {
                       chained_t* parcours = cherche_calcul(&root_chain);
 
