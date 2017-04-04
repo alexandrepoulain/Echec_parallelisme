@@ -129,7 +129,7 @@ void evaluate(chained_t* root_chain)
 chained_t* cherche_calcul(chained_t* node)
 {
   int depth = 0;
-
+  printf("fini = %d\n",  node->fini);
   while(node->indice == node->indice_fin && node->fini != 1){
     printf("bien_def = %d\n",  node->bien_def);
     printf("indice = %d\n", node->indice);
