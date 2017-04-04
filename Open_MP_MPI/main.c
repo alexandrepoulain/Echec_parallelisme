@@ -408,59 +408,68 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             MPI_Recv(&envoyeur,1,MPI_INT,status.MPI_SOURCE,TAG_JETON_CALCUL,MPI_COMM_WORLD, &status);
             printf("#ROOT J'ai reçu le jeton de calcul de %d \n", envoyeur);
             // on teste savoir si ce n'estas notre propre jeton de calcul
-            if(envoyeur != rang){
-              // On teste savoir si on est dans la première partie du calcul ou pas
-              if(!termine_premiere_partie){
-                //On va chercher du calcul
-                chained_t* parcours = cherche_calcul(root_chain);
-                if(parcours != NULL && root_chain->plateau.depth > 7)
-                {
-                  printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
-                  adresse[envoyeur]=parcours;
-                  // c'est qu'on a trouvé du calcul à une profondeur donnée
-                  #pragma omp critical
+            #pragma omp critical
+                    {
+              if(envoyeur != rang){
+                // On teste savoir si on est dans la première partie du calcul ou pas
+                if(!termine_premiere_partie){
+                  //On va chercher du calcul
+                  if(root_chain->plateau.depth > 7){
+                    chained_t* parcours = cherche_calcul(root_chain);
+                    if(parcours != NULL)
+                    {
+                      printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
+                      adresse[envoyeur]=parcours;
+                      // c'est qu'on a trouvé du calcul à une profondeur donnée
+                      
+                        MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                        MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                        // On précise qu'une nouvelle région vient d'être crée
+                        nb_regions++;
+                      
+                    }
+                    else
+                    {
+                      printf("#ROOT pas de calcul je transmet\n");
+                      MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                    }
+                  }
+                  // sinon on transmet le jeton au suivant 
+                  else
                   {
-                    MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    // On précise qu'une nouvelle région vient d'être crée
-                    nb_regions++;
+                    printf("#ROOT pas de calcul je transmet\n");
+                    MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                   }
                 }
-                // sinon on transmet le jeton au suivant 
+                // Sinon on est déjà dans un calcul demandé par un autre processus
                 else
                 {
-                  printf("#ROOT pas de calcul je transmet\n");
-                  MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-                }
-              }
-              // Sinon on est déjà dans un calcul demandé par un autre processus
-              else
-              {
-                // ici on va chercher recursivement
-                // on définit l'addresse du noeud courant
-                if(new_root_chain.plateau.depth > 7){
-                  chained_t* parcours = cherche_calcul(&new_root_chain);
-                  if(parcours != NULL){
-                    
-                    // on va envoyer au demandeur le calcul correspondant à cette adresse
-                    adresse[envoyeur] = parcours;
-                    // Maintenant on peut envoyer
-                    
-                    MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
-                    MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    
+                  // ici on va chercher recursivement
+                  // on définit l'addresse du noeud courant
+                  if(new_root_chain.plateau.depth > 7){
+                    chained_t* parcours = cherche_calcul(&new_root_chain);
+                    if(parcours != NULL){
+                      
+                      // on va envoyer au demandeur le calcul correspondant à cette adresse
+                      adresse[envoyeur] = parcours;
+                      // Maintenant on peut envoyer
+                      
+                      MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                      printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
+                      MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                      
+                    }
+                    else{
+                      // Du coup on transmet juste
+                      printf("#ROOT pas de calcul je transmet\n");
+                      MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                    }
                   }
                   else{
                     // Du coup on transmet juste
                     printf("#ROOT pas de calcul je transmet\n");
                     MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                   }
-                }
-                else{
-                  // Du coup on transmet juste
-                  printf("#ROOT pas de calcul je transmet\n");
-                  MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                 }
               }
                 
