@@ -841,7 +841,7 @@ int main(int argc, char **argv)
                   {
                     printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
                     // Du coup on transmet juste
-                    MPI_Send(&envoyeur,1,MPI_INT,rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                    MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                   }
                 }
                 // Sinon on récupère notre propre jeton de calcul et on informe le maître qu'on est au rapport
