@@ -415,8 +415,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                     // Maintenant on peut envoyer
                     
                     MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                     printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
+                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                    
                   }
                   else{
                     // Du coup on transmet juste
