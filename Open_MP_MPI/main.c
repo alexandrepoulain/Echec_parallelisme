@@ -409,13 +409,14 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 if(new_root_chain.plateau.depth > 4){
                   chained_t* parcours = cherche_calcul(&new_root_chain);
                   if(parcours != NULL){
-                    printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
+                    
                     // on va envoyer au demandeur le calcul correspondant à cette adresse
                     adresse[envoyeur] = parcours;
                     // Maintenant on peut envoyer
-                    #pragma omp critical
+                    
                     MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                     MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                    printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                   }
                   else{
                     // Du coup on transmet juste
