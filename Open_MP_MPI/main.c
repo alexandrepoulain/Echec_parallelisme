@@ -382,6 +382,26 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             test_fin[status.MPI_SOURCE]=1;
 
           }
+          if(tag == TAG_RESULT_DEMANDE){
+            int envoyeur = status.MPI_SOURCE;
+            printf("#%d reçoit un resultat de %d \n", rang, envoyeur);
+            // On la reçoit et on la traite
+            printf("#%d je recupere le travail poir le noeud %p\n",rang, adresse[envoyeur] );
+            result_t new_child_result;
+            MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
+            int child_score = new_child_result.score;
+            if (child_score > adresse[envoyeur]->result.score){
+             adresse[envoyeur]->result.score = child_score;
+             adresse[envoyeur]->result.best_move = new_child_result.best_move;
+             adresse[envoyeur]->result.pv_length = new_child_result.pv_length + 1;
+             for(int j = 0; j < new_child_result.pv_length; j++)
+              adresse[envoyeur]->result.PV[j+1] = new_child_result.PV[j];
+             adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
+            }
+            // On augmente l'indice de fin
+            adresse[envoyeur]->indice_fin++;
+            printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
+          }
 
 
           // Si on reçoit une demande de calcul en réponse à un jeton
@@ -793,6 +813,7 @@ int main(int argc, char **argv)
       chained_t root_chain;
       root_chain.fini = 0;
       int fini=1, source, go = 0, over, attente=0;
+      int sous_traitance_0 = 0;
       int count, nb_elem;
       printf("#%d Au rapport\n", rang);
       #pragma omp parallel sections
@@ -808,8 +829,15 @@ int main(int argc, char **argv)
             {
               printf("#%d essaye d'envoyer un result à %d \n", rang, demandeur);
               // envoit du result
-              #pragma omp critical
-              MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
+              if(sous_traitance_0 == 1){
+                MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
+                sous_traitance_0 = 0;
+              }
+              else{
+                #pragma omp critical
+                MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
+              }
+              
               // On détruit ici
               //#pragma omp critical
               //free_chain(&root_chain);
@@ -883,6 +911,9 @@ int main(int argc, char **argv)
                 root_chain.fixe=count;
                 root_chain.indice=0;
                 root_chain.bien_def=1;
+                // Si c'est 0
+                if(demandeur == 0)
+                  sous_traitance_0 = 1;
                 go = 1;  
                 printf("#%d Je me met au travail pour %d \n", rang, demandeur);    
                }
