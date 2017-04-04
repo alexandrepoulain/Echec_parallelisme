@@ -136,7 +136,7 @@ chained_t* cherche_calcul(chained_t* node)
     printf("here\n");
     if(node->indice < node->indice_fin-2){
       printf("profondeur = %d\n", depth);
-      #pragma omp critical
+      
       node->indice_fin--;
       return node;
     }
@@ -838,22 +838,26 @@ int main(int argc, char **argv)
                   printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
                   // ici on va chercher recursivement
                   // on définit l'addresse du noeud courant
-                  chained_t* parcours = cherche_calcul(&root_chain);
-                  if(parcours != NULL && root_chain.plateau.depth > 4){
-                    // on va envoyer au demandeur le calcul correspondant à cette adresse
-                    adresse[envoyeur] = parcours;
-                    // Maintenant on peut envoyer
-                    #pragma omp critical
-                    parcours->indice_fin--;
-                    MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                    printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
-                  }
-                  else
+                  #pragma omp critical
                   {
-                    printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
-                    // Du coup on transmet juste
-                    MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                    chained_t* parcours = cherche_calcul(&root_chain);
+
+                    if(parcours != NULL && root_chain.plateau.depth > 4){
+                      // on va envoyer au demandeur le calcul correspondant à cette adresse
+                      adresse[envoyeur] = parcours;
+                      // Maintenant on peut envoyer
+                      
+                      parcours->indice_fin--;
+                      MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                      MPI_Send(&parcours->moves[parcours->indice_fin],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
+                      printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
+                    }
+                    else
+                    {
+                      printf("#%d transmet le jeton de calcul de %d\n",rang, envoyeur);
+                      // Du coup on transmet juste
+                      MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
+                    }
                   }
                 }
                 // Sinon on récupère notre propre jeton de calcul et on informe le maître qu'on est au rapport
