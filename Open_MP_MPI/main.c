@@ -117,11 +117,22 @@ void evaluate(chained_t* root_chain)
   }
   //#pragma omp critical
   root_chain->fini = 1;
-  int test = 0;
-  while(root_chain->indice_fin != root_chain->n_moves){
+  int test = 0,temp_1, temp_2;
+  #pragma omp critical
+  {
+    temp_1 = root_chain->n_moves;
+    temp_2 = root_chain->indice_fin;
+  }
+  while(temp_1 != temp_2){
     if(test == 0){
+
       printf("attend un resultat dans evaluate \n");
       test++;
+    }
+    #pragma omp critical
+    {
+      temp_1 = root_chain->n_moves;
+      temp_2 = root_chain->indice_fin;
     }
   }
   if(test == 1)
