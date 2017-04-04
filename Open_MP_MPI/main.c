@@ -399,6 +399,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
              adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
             }
             // On augmente l'indice de fin
+            #pragma omp critical
             adresse[envoyeur]->indice_fin++;
             printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
           }
@@ -936,6 +937,7 @@ int main(int argc, char **argv)
                  adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
                 }
                 // On augmente l'indice de fin
+                #pragma omp critical
                 adresse[envoyeur]->indice_fin++;
                 printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
               }
