@@ -197,8 +197,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       // On définit un tableau d'adresse: quand le processus enverra une partie du calcul à un autre processus
       // A l'aide de ca tableau il connaîtra l'adresse du noeud où vient le calcul
       chained_t* adresse[NP];
-      int* test_fin = calloc(NP, sizeof(int));
-      test_fin[0]=1;
+      
 
       // On commence à envoyer à partir de l'indice 1 
       // ( l'indice 0 c'est le maitre qui s'en occupe)
@@ -266,6 +265,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       /*** Attente que le processus de calcul est fini ***/
       int flag;
       int temp_fin = 1, new_fini = 1;
+      int* test_fin = calloc(NP, sizeof(int));
+      test_fin[0]=1;
       while(temp_fin)
       {
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
@@ -424,17 +425,14 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         if(fini == 0){
           int test = 0;
           for(int g = 0; g < NP; g++){
-            if(test_fin[g] == 0)
+            if(test_fin[g] != 1)
               test = 1;
           }
           if(test==0)
             #pragma omp critical
             temp_fin = 0;
         }
-        
-        
       }
-      #pragma omp critical
       printf("#ROOT fini = %d\n", temp_fin);
     }
       
