@@ -482,6 +482,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           // En gros sur chaque move on envoie evaluate 
           #pragma omp critical
           {
+            root_chain->fini = 0;
             for(root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
             {
               root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
@@ -746,7 +747,7 @@ int main(int argc, char **argv)
     else{
       /*** PARTIE PARTAGE ***/
       chained_t root_chain;
-      root_chain.fini = 1;
+      root_chain.fini = 0;
       int fini=1, source, go = 0, over, attente=0;
       int count, nb_elem;
       printf("#%d Au rapport\n", rang);
