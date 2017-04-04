@@ -130,10 +130,10 @@ chained_t* cherche_calcul(chained_t* node)
   int depth = 0;
 
   while(node->indice == node->indice_fin && node->fini != 1){
-    
-    node = node->chain[node->indice_fin-1];
-    if(depth >= 5 || node->bien_def != 1)
+    if(depth >= 5 || node->chain[node->indice_fin-1]->bien_def != 1)
       break;
+    node = node->chain[node->indice_fin-1];
+    
     depth++;
   }
   printf("depth = %d\n", depth);
