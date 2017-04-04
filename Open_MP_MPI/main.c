@@ -123,6 +123,8 @@ void evaluate(chained_t* root_chain)
       test++;
     }
   }
+  if(test == 1)
+    printf("je n'attend plus dans dans evaluate \n");
   for(int i = 0; i<root_chain->n_moves; i++)
     free(root_chain->chain[i]);
   free(root_chain->chain);
