@@ -873,7 +873,7 @@ int main(int argc, char **argv)
                 }
                 // On augmente l'indice de fin
                 adresse[envoyeur]->indice_fin++;
-                printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves);
+                printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice);
               }
               
               //Si on reçoit un jeton de calcul
