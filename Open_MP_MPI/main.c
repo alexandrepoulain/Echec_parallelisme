@@ -832,7 +832,7 @@ int main(int argc, char **argv)
                 // on recupre le demandeur
                 demandeur = status.MPI_SOURCE;
                 // recoit l'arbre
-                MPI_Recv(&root_chain.plateau, 1, mpi_tree_t, demandeur, TAG_INIT, MPI_COMM_WORLD, &status);
+                MPI_Recv(&root_chain.plateau, 1, mpi_tree_t, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
                 // on reçoit le move
                 MPI_Probe(status.MPI_SOURCE, TAG_INIT, MPI_COMM_WORLD, &status);
                 MPI_Get_count(&status, MPI_INT, &count);
@@ -929,7 +929,6 @@ int main(int argc, char **argv)
             if(temp_go == 1){
               #pragma omp critical
               {
-                temp_nb_elem = nb_elem;
                 root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
               }
               printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
