@@ -922,6 +922,7 @@ int main(int argc, char **argv)
         }
 
       }
+      printf("#%d je suis sorti et finalized \n", rang);
       MPI_Finalize();
     }
     
