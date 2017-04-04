@@ -118,6 +118,8 @@ void evaluate(chained_t* root_chain)
   while(root_chain->indice_fin != root_chain->n_moves){
     ;
   }
+  for(int i = 0; i<root_chain->n_moves; i++)
+    free(root_chain->chain[i]);
   free(root_chain->chain);
   free(root_chain->moves);
   
@@ -134,7 +136,7 @@ chained_t* cherche_calcul(chained_t* node)
     printf("bien_def = %d\n",  node->bien_def);
     printf("indice = %d\n", node->indice);
     printf("indice_fin = %d\n", node->indice_fin);
-    if(node->n_moves == 0)
+    if(node->n_moves == 0 || depth >= 5)
       return NULL;
     if(node->bien_def == 1 && node->indice < node->indice_fin-1){
       node->indice_fin--;
@@ -501,13 +503,15 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                   root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
                  root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
                 }
-                free(root_chain->chain[root_chain->indice]);
+                //free(root_chain->chain[root_chain->indice]);
             }
             while(root_chain->indice_fin != root_chain->n_moves){
               ;
             }
             // le calcul est actuellement fini
             root_chain->fini = 1;
+            for(int i = 0; i<root_chain->n_moves; i++)
+              free(root_chain->chain[i]);
             free(root_chain->chain);
             
           }
@@ -560,8 +564,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                   printf("#ROOT j'attends le reste du calcul\n");
                   test = 0;
                 }
-                
               }
+              for(int i = 0; i<new_root_chain.n_moves; i++)
+                free(new_root_chain.chain[i]);
               printf("#ROOT fini d'attendre\n");
               
               // On a fini le calcul
@@ -940,13 +945,15 @@ int main(int argc, char **argv)
                    root_chain.result.PV[0] = root_chain.moves[root_chain.indice];
 
                   }
-                  free(root_chain.chain[root_chain.indice]);
+                  //free(root_chain.chain[root_chain.indice]);
                 }
                 root_chain.fini = 1;
                 // Si il y a du calcul à recuperer
                 while(root_chain.indice_fin != root_chain.n_moves){
                   ;
                 }
+                for(int i = 0; i<root_chain.n_moves; i++)
+                  free(root_chain.chain[i]);
                 printf("#%d Fini le calcul\n", rang);
               
                 over = 1;
