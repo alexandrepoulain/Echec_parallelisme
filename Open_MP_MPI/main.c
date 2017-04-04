@@ -130,7 +130,8 @@ chained_t* cherche_calcul(chained_t* node)
     node = node->chain[node->indice_fin-1];
     depth++;
   }
-  
+  if(depth == 0)
+    return NULL;
   printf("here\n");
   if(node->indice < node->indice_fin-2 && node->plateau.depth > 5){
     printf("profondeur = %d\n", depth);
