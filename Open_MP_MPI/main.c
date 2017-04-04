@@ -66,6 +66,7 @@ void evaluate(chained_t* root_chain)
   }
 
   root_chain->n_moves = generate_legal_moves(&root_chain->plateau, &root_chain->moves[0]);
+  root_chain->indice_fin = root_chain->n_moves;
   root_chain->chain = calloc(root_chain->n_moves,sizeof(chained_t*));
 
         /* absence de coups légaux : pat ou mat */
@@ -110,11 +111,11 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
-  /*
+  
   while(root_chain->indice_fin != root_chain->n_moves){
     ;
   }
-  */
+  
   //printf("Je détruit\n");
   //free_chain(root_chain);
 }
