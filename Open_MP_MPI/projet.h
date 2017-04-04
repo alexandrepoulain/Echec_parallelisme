@@ -75,6 +75,7 @@ typedef struct {
 C'est une liste chaînée */  
 typedef struct chained {
   int fini;
+  int bien_def;
   int indice;
   int indice_fin;
   result_t result;

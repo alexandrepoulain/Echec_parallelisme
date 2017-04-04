@@ -67,6 +67,8 @@ void evaluate(chained_t* root_chain)
 
   root_chain->n_moves = generate_legal_moves(&root_chain->plateau, &root_chain->moves[0]);
   root_chain->indice_fin = root_chain->n_moves;
+  root_chain->indice = 0;
+  root_chain->bien_def = 1;
   root_chain->chain = calloc(root_chain->n_moves,sizeof(chained_t*));
 
         /* absence de coups légaux : pat ou mat */
@@ -132,10 +134,12 @@ chained_t* cherche_calcul(chained_t* node)
     node = node->chain[node->indice_fin-1];
     depth++;
   }
-  printf("indice = %d\n", node->indice);
-  printf("indice_fin = %d\n", node->indice_fin);
-  if(node->indice < node->indice_fin-2){
+  
+  if(node->indice < node->indice_fin-1 && node->bien_def == 1){
+    printf("indice = %d\n", node->indice);
+    printf("indice_fin = %d\n", node->indice_fin);
     node->indice_fin--;
+
     printf("profondeur = %d\n", depth);
     printf("move = %d\n", node->moves[node->indice_fin]);
     return node;
@@ -222,6 +226,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       }
       root_chain->n_moves = nb_elem;
       root_chain->indice_fin = root_chain->n_moves;
+      root_chain->indice = 0;
+      root_chain->bien_def=1;
       printf("#ROOT reste = %d\n", reste);
       // Processus 0 peut commencer
       #pragma omp critical
@@ -361,6 +367,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             MPI_Get_count(&status, MPI_INT, &new_count);
             MPI_Recv(&new_root_chain.moves[0],new_count,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             new_root_chain.n_moves=1;
+            new_root_chain.indice_fin=1;
+            new_root_chain.indice=0;
+            new_root_chain.bien_def=1;
             // On signale au tread de calcul qu'il peux y aller
             #pragma omp critical
             go = 1;
@@ -790,6 +799,8 @@ int main(int argc, char **argv)
                   // construction de la root_chain
                   root_chain.n_moves = count;
                   root_chain.indice_fin = count;
+                  root_chain.indice=0;
+                  root_chain.bien_def=1;
                   printf("#%d j'ai reçu les moves de ROOT %d \n",rang, root_chain.moves[0]);
                   root_chain.fini = 0;
                   go = 1;
@@ -812,6 +823,9 @@ int main(int argc, char **argv)
                 root_chain.moves = calloc(count,sizeof(move_t));
                 MPI_Recv(&root_chain.moves[0], count, MPI_INT, demandeur, TAG_DEMANDE, MPI_COMM_WORLD, &status);
                 root_chain.n_moves = count;
+                root_chain.indice_fin=count;
+                root_chain.indice=0;
+                root_chain.bien_def=1;
                 go = 1;      
                }
                
