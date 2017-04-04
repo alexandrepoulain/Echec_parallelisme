@@ -789,7 +789,7 @@ int main(int argc, char **argv)
                   // construction de la root_chain
                   root_chain.n_moves = count;
                   root_chain.indice_fin = count;
-                  printf("#%d j'ai reçu les moves de ROOT \n",rang);
+                  printf("#%d j'ai reçu les moves de ROOT %d \n",rang, root_chain.moves[0]);
                   root_chain.fini = 0;
                   go = 1;
                   // on stocke à qui on doit renvoyer
