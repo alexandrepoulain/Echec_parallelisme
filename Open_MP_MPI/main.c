@@ -678,6 +678,7 @@ int main(int argc, char **argv)
       int i; 
       double debut, fin;
       chained_t root_chain;
+
       if (argc < 2) {
         printf("usage: %s \"4k//4K/4P w\" (or any position in FEN)\n", argv[0]);
         exit(1);
@@ -728,6 +729,7 @@ int main(int argc, char **argv)
     else{
       /*** PARTIE PARTAGE ***/
       chained_t root_chain;
+      root_chain.fini = 1;
       int fini=1, source, go = 0, over, attente=0;
       int count, nb_elem;
       printf("#%d Au rapport\n", rang);
@@ -781,12 +783,14 @@ int main(int argc, char **argv)
                 printf("#%d Je reçois %d moves \n",rang, count);
                 #pragma omp critical
                 {
+
             			root_chain.moves = calloc(count,sizeof(move_t));
             			MPI_Recv(&root_chain.moves[0], count, MPI_INT, 0, TAG_INIT, MPI_COMM_WORLD, &status);
                   // construction de la root_chain
                   root_chain.n_moves = count;
                   root_chain.indice_fin = count;
                   printf("#%d j'ai reçu les moves de ROOT \n",rang);
+                  root_chain.fini = 0;
                   go = 1;
                   // on stocke à qui on doit renvoyer
                   demandeur = 0;
