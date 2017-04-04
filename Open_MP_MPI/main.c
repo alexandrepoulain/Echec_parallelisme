@@ -110,10 +110,11 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
+  /*
   while(root_chain->indice_fin != root_chain->n_moves){
     ;
   }
-  
+  */
   //printf("Je détruit\n");
   //free_chain(root_chain);
 }
