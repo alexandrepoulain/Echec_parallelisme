@@ -960,8 +960,12 @@ int main(int argc, char **argv)
                 }
                 root_chain.fini = 1;
                 // Si il y a du calcul à recuperer
+                int test = 0;
                 while(root_chain.indice_fin != root_chain.n_moves){
-                  ;
+                  if(test == 0){
+                    printf("j'attend un resultat\n");
+                    test++;
+                  }
                 }
                 for(int i = 0; i<root_chain.n_moves; i++)
                   free(root_chain.chain[i]);
