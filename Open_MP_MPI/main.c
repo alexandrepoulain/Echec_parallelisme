@@ -842,7 +842,8 @@ int main(int argc, char **argv)
                 root_chain.indice_fin=count;
                 root_chain.indice=0;
                 root_chain.bien_def=1;
-                go = 1;      
+                go = 1;  
+                printf("#%d Je me met au travail pour %d \n", rang, demandeur);    
                }
                
               
