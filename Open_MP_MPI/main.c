@@ -465,7 +465,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         {
           printf("#ROOT je commence le calcul\n");
           // En gros sur chaque move on envoie evaluate 
-          
+          #pragma omp critical
+          {
             for(root_chain->indice = 0; root_chain->indice < root_chain->indice_fin; root_chain->indice++) 
             {
               root_chain->chain[root_chain->indice] = calloc(1,sizeof(chained_t));
@@ -496,7 +497,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             root_chain->fini = 1;
             free(root_chain->chain);
             free(root_chain->moves);
-          
+          }
           #pragma omp critical 
           go = 0;
           //free(root_chain->moves);
