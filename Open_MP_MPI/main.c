@@ -965,7 +965,7 @@ int main(int argc, char **argv)
                   }
                   //free(root_chain.chain[root_chain.indice]);
                 }
-                #pragma omp critical
+                //#pragma omp critical
                 root_chain.fini = 1;
                 // Si il y a du calcul à recuperer
                 int test = 0;
