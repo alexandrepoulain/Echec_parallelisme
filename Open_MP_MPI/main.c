@@ -69,6 +69,7 @@ void evaluate(chained_t* root_chain)
   root_chain->indice_fin = root_chain->n_moves;
   root_chain->indice = 0;
   root_chain->bien_def = 1;
+  #pragma omp critical
   root_chain->fini = 0;
   root_chain->chain = calloc(root_chain->n_moves,sizeof(chained_t*));
 
@@ -114,7 +115,7 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
-  //#pragma omp critical
+  #pragma omp critical
   root_chain->fini = 1;
   int test = 0;
   while(root_chain->indice_fin != root_chain->n_moves){
@@ -523,6 +524,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               ;
             }
             // le calcul est actuellement fini
+            pragma omp critical
             root_chain->fini = 1;
             for(int i = 0; i<root_chain->n_moves; i++)
               free(root_chain->chain[i]);
@@ -571,6 +573,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
+              #pragma omp critical
               new_root_chain.fini = 1;
               int test = 1;
               while(new_root_chain.indice_fin != new_root_chain.n_moves){
@@ -965,8 +968,10 @@ int main(int argc, char **argv)
                   }
                   //free(root_chain.chain[root_chain.indice]);
                 }
-                //#pragma omp critical
-                root_chain.fini = 1;
+                #pragma omp critical
+                {
+                  root_chain.fini = 1;
+                }
                 // Si il y a du calcul à recuperer
                 int test = 0;
                 while(root_chain.indice_fin != root_chain.n_moves){
