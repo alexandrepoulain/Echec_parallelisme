@@ -130,8 +130,12 @@ chained_t* cherche_calcul(chained_t* node)
   }
   if(depth == 0)
     return NULL;
-  else
+  else{
+    printf("profondeur = %d\n", depth);
     return node;
+  }
+
+    
 }
 
 
