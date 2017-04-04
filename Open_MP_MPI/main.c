@@ -130,7 +130,7 @@ chained_t* cherche_calcul(chained_t* node)
   int depth = 0;
 
   while(node->indice == node->indice_fin && node->fini != 1){
-    if(depth >= 5)
+    if(depth >= 5 || node->bien_def)
       return NULL; 
     node = node->chain[node->indice_fin-1];
     depth++;
