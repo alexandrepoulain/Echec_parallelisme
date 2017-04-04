@@ -114,6 +114,7 @@ void evaluate(chained_t* root_chain)
     tt_store(&root_chain->plateau, &root_chain->result);
   
   }
+  #pragma omp critical
   root_chain->fini = 1;
   int test = 0;
   while(root_chain->indice_fin != root_chain->n_moves){
@@ -570,7 +571,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
-              new_root_chain.chain[new_root_chain.indice]->fini = 1;
+              new_root_chain.fini = 1;
               int test = 1;
               while(new_root_chain.indice_fin != new_root_chain.n_moves){
                 if(test == 1){
@@ -964,6 +965,7 @@ int main(int argc, char **argv)
                   }
                   //free(root_chain.chain[root_chain.indice]);
                 }
+                #pragma omp critical
                 root_chain.fini = 1;
                 // Si il y a du calcul à recuperer
                 int test = 0;
