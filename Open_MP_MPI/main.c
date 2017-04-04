@@ -890,6 +890,7 @@ int main(int argc, char **argv)
                       if(parcours != NULL){
                         // on va envoyer au demandeur le calcul correspondant à cette adresse
                         adresse[envoyeur] = parcours;
+                        printf("#%d j'ai enregistré le noeud à l'adresse %p\n", rang, parcours);
                         // Maintenant on peut envoyer
                         
                         MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
