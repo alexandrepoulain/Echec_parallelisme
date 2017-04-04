@@ -732,11 +732,11 @@ int main(int argc, char **argv)
               // On détruit ici
               //#pragma omp critical
               //free_chain(&root_chain);
-              /*
+              
               // envoit du jeton de calcul
               int moi = rang; 
               MPI_Send(&moi, 1, MPI_INT, rang+1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
-              */
+              
               #pragma omp critical
               over = 0;
             }
