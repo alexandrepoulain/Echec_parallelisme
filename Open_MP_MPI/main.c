@@ -138,7 +138,12 @@ chained_t* cherche_calcul(chained_t* node)
 {
   int depth = 0;
   printf("fini = %d\n",  node->fini);
-  while(node->indice == node->indice_fin-1 && node->fini != 1){
+  int temp_fin;
+  #pragma omp critical
+  {
+    temp_fin = node->fini;
+  }
+  while(node->indice == node->indice_fin-1 && temp_fin!= 1){
     printf("bien_def = %d\n",  node->bien_def);
     printf("indice = %d\n", node->indice);
     printf("indice_fin = %d\n", node->indice_fin);
@@ -151,7 +156,8 @@ chained_t* cherche_calcul(chained_t* node)
     if(node->bien_def != 1)
       return NULL;
     node = node->chain[node->indice_fin-1];
-
+    #pragma omp critical
+    temp_fin = node->fini;
     depth++;
   }
   printf("bien_def = %d\n",  node->bien_def);
@@ -886,8 +892,7 @@ int main(int argc, char **argv)
                   printf("#%d reçoit le jeton de calcul de %d \n", rang, envoyeur);
                   // ici on va chercher recursivement
                   // on définit l'addresse du noeud courant
-                  #pragma omp critical
-                  {
+                  
                     if(root_chain.plateau.depth > 4)
                     {
                       chained_t* parcours = cherche_calcul(&root_chain);
@@ -915,7 +920,7 @@ int main(int argc, char **argv)
                       // Du coup on transmet juste
                       MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
-                  }
+                  
                 }
                 // Sinon on récupère notre propre jeton de calcul et on informe le maître qu'on est au rapport
                 else{
