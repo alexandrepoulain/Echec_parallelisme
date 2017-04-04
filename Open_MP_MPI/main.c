@@ -373,7 +373,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               if(!termine_premiere_partie){
                 //On va chercher du calcul
                 chained_t* parcours = cherche_calcul(root_chain);
-                if(parcours != NULL)
+                if(parcours != NULL && root_chain->plateau.depth > 4)
                 {
                   printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                   adresse[envoyeur]=parcours;
@@ -400,7 +400,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 // ici on va chercher recursivement
                 // on définit l'addresse du noeud courant
                 chained_t* parcours = cherche_calcul(&new_root_chain);
-                if(parcours != NULL){
+                if(parcours != NULL && new_root_chain.plateau.depth > 4){
                   printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                   // on va envoyer au demandeur le calcul correspondant à cette adresse
                   adresse[envoyeur] = parcours;
@@ -832,7 +832,7 @@ int main(int argc, char **argv)
                   // ici on va chercher recursivement
                   // on définit l'addresse du noeud courant
                   chained_t* parcours = cherche_calcul(&root_chain);
-                  if(parcours != NULL){
+                  if(parcours != NULL && root_chain.plateau.depth > 4){
                     printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
                     // on va envoyer au demandeur le calcul correspondant à cette adresse
                     adresse[envoyeur] = parcours;
