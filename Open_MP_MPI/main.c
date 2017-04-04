@@ -125,9 +125,8 @@ void evaluate(chained_t* root_chain)
   }
   while(temp_1 != temp_2){
     if(test == 0){
-
-      printf("attend un resultat dans evaluate \n");
-      test++;
+      printf("attend un resultat dans evaluate !!!!!!!!!!!!!!!!!!!!\n");
+      test=1;
     }
     #pragma omp critical
     {
@@ -136,7 +135,7 @@ void evaluate(chained_t* root_chain)
     }
   }
   if(test == 1)
-    printf("je n'attend plus dans dans evaluate \n");
+    printf("je n'attend plus dans dans evaluate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   for(int i = 0; i<root_chain->n_moves; i++)
     free(root_chain->chain[i]);
   free(root_chain->chain);
