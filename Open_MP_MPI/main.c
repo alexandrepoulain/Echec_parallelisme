@@ -90,30 +90,32 @@ void evaluate(chained_t* root_chain)
     play_move(&root_chain->plateau, root_chain->moves[root_chain->indice], &root_chain->chain[root_chain->indice]->plateau);
 
     evaluate(root_chain->chain[root_chain->indice]);
-
-    int child_score = -root_chain->chain[root_chain->indice]->result.score;
-
-    if (child_score > root_chain->result.score) 
+    #pragma omp critical
     {
-      root_chain->result.score = child_score;
-      root_chain->result.best_move = root_chain->moves[root_chain->indice];
-      root_chain->result.pv_length = root_chain->chain[root_chain->indice]->result.pv_length + 1;
-      for(int j = 0; j < root_chain->chain[root_chain->indice]->result.pv_length; j++)
-        root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
-      root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
+      int child_score = -root_chain->chain[root_chain->indice]->result.score;
+
+      if (child_score > root_chain->result.score) 
+      {
+        root_chain->result.score = child_score;
+        root_chain->result.best_move = root_chain->moves[root_chain->indice];
+        root_chain->result.pv_length = root_chain->chain[root_chain->indice]->result.pv_length + 1;
+        for(int j = 0; j < root_chain->chain[root_chain->indice]->result.pv_length; j++)
+          root_chain->result.PV[j+1] = root_chain->chain[root_chain->indice]->result.PV[j];
+        root_chain->result.PV[0] = root_chain->moves[root_chain->indice];
+      }
     }
     // free chain
     //free(root_chain->chain[root_chain->indice]);
- 
+ /*
   if (ALPHA_BETA_PRUNING && child_score >= root_chain->plateau.beta)
     break;    
-
+  
   root_chain->plateau.alpha = MAX(root_chain->plateau.alpha, child_score);
-
+  
 
   if (TRANSPOSITION_TABLE)
     tt_store(&root_chain->plateau, &root_chain->result);
-  
+  */
   }
   //#pragma omp critical
   root_chain->fini = 1;
@@ -1027,9 +1029,10 @@ int main(int argc, char **argv)
                   evaluate(root_chain.chain[root_chain.indice]);
                   printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[root_chain.indice]);
                   
-                  int child_score = -root_chain.chain[root_chain.indice]->result.score;
+                  
                   #pragma omp critical
                   {
+                    int child_score = -root_chain.chain[root_chain.indice]->result.score;
                     if (child_score > root_chain.chain[root_chain.indice]->result.score) {
                      root_chain.result.score = child_score;
                      root_chain.result.best_move = root_chain.moves[root_chain.indice];
