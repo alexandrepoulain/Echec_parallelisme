@@ -588,8 +588,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             root_chain->fini = 1;
             for(int i = 0; i<root_chain->n_moves; i++)
               free(root_chain->chain[i]);
-            free(root_chain->chain);
-            free(root_chain->moves);
+            //free(root_chain->chain);
+            //free(root_chain->moves);
             
           
           #pragma omp critical 
