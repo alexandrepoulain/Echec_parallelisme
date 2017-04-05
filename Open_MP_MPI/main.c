@@ -1027,9 +1027,11 @@ int main(int argc, char **argv)
               #pragma omp critical
               {
                 root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
+                root_chain.result.score = check(&root_chain.plateau) ? -MAX_SCORE : CERTAIN_DRAW;
               }
               printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
               
+
                 for(root_chain.indice = 0; root_chain.indice < root_chain.fixe; root_chain.indice++)
                 {
                   root_chain.chain[root_chain.indice] = calloc(1,sizeof(chained_t));
