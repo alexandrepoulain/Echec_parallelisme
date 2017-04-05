@@ -474,6 +474,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                       //printf("#ROOT pas de calcul je transmet\n");
                       MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
+                    free(parcours);
                   }
                   // sinon on transmet le jeton au suivant 
                   else
@@ -505,6 +506,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                       //printf("#ROOT pas de calcul je transmet\n");
                       MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
+                    free(parcours);
                   }
                   else{
                     // Du coup on transmet juste
@@ -524,9 +526,12 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             if(test_fin[g] != 1)
               test = 1;
           }
-          if(test==0)
+          if(test==0){
             #pragma omp critical
             temp_fin = 0;
+            free(test_fin);
+          }
+            
         }
       }
       //printf("#ROOT fini = %d\n", temp_fin);
@@ -1010,6 +1015,7 @@ int main(int argc, char **argv)
                         // Du coup on transmet juste
                         MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                       }
+                      free(parcours);
                     }
                     else
                     {
@@ -1090,8 +1096,8 @@ int main(int argc, char **argv)
                 }
                 for(int i = 0; i<root_chain.n_moves; i++)
                   free(root_chain.chain[i]);
-                //free(root_chain.chain);
-                //free(root_chain.moves);
+                free(root_chain.chain);
+                free(root_chain.moves);
                 //printf("#%d Fini le calcul\n", rang);
               #pragma omp critical
               {
