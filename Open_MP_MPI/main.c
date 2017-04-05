@@ -954,7 +954,8 @@ int main(int argc, char **argv)
                 // On augmente l'indice de fin
                 #pragma omp critical
                 {
-                  adresse[envoyeur]->indice_fin++;
+                  adresse[envoyeur]->indice_fin+=1;
+                  printf("#%d J'ai mis à jour l'indice de fin = %d\n", rang, adresse[envoyeur]->indice_fin);
                 }
                 printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
               }
