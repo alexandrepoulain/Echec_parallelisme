@@ -351,7 +351,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             nb_regions--;
             #pragma omp critical
             {
-              int child_score = -child_result.score;
+              int child_score = child_result.score;
               if (child_score > root_chain->result.score){
                 printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
                 root_chain->result.score = child_score;
@@ -389,18 +389,20 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             printf("#%d je recupere le travail poir le noeud %p\n",rang, adresse[envoyeur] );
             result_t new_child_result;
             MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-            int child_score = -new_child_result.score;
-            if (child_score > adresse[envoyeur]->result.score){
-             adresse[envoyeur]->result.score = child_score;
-             adresse[envoyeur]->result.best_move = new_child_result.best_move;
-             adresse[envoyeur]->result.pv_length = new_child_result.pv_length + 1;
-             for(int j = 0; j < new_child_result.pv_length; j++)
-              adresse[envoyeur]->result.PV[j+1] = new_child_result.PV[j];
-             adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
-            }
-            // On augmente l'indice de fin
+            int child_score = new_child_result.score;
             #pragma omp critical
-            adresse[envoyeur]->indice_fin++;
+            {
+              if (child_score > adresse[envoyeur]->result.score){
+               adresse[envoyeur]->result.score = child_score;
+               adresse[envoyeur]->result.best_move = new_child_result.best_move;
+               adresse[envoyeur]->result.pv_length = new_child_result.pv_length + 1;
+               for(int j = 0; j < new_child_result.pv_length; j++)
+                adresse[envoyeur]->result.PV[j+1] = new_child_result.PV[j];
+               adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
+              }
+              // On augmente l'indice de fin
+              adresse[envoyeur]->indice_fin++;
+            }
             printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
           }
 
@@ -610,16 +612,19 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                 play_move(&new_root_chain.plateau, new_root_chain.moves[new_root_chain.indice], &new_root_chain.chain[new_root_chain.indice]->plateau);
                 evaluate(new_root_chain.chain[new_root_chain.indice]);
                 int child_score = -new_root_chain.chain[new_root_chain.indice]->result.score;
-                if (child_score > new_root_chain.result.score){
-                  new_root_chain.result.score = child_score;
-                  // on recupere le move correspondant en utilisant le tableau indice
-                  new_root_chain.result.best_move = new_root_chain.chain[new_root_chain.indice]->result.best_move;
-                  new_root_chain.result.pv_length = new_root_chain.chain[new_root_chain.indice]->result.pv_length + 1;
-                  for(int j = 0; j < new_root_chain.chain[new_root_chain.indice]->result.pv_length; j++)
-                    new_root_chain.result.PV[j+1] = new_root_chain.chain[new_root_chain.indice]->result.PV[j];
-                  new_root_chain.result.PV[0] = new_root_chain.chain[new_root_chain.indice]->result.best_move;
+                #pragma omp critical
+                {
+                  if (child_score > new_root_chain.result.score){
+                    new_root_chain.result.score = child_score;
+                    // on recupere le move correspondant en utilisant le tableau indice
+                    new_root_chain.result.best_move = new_root_chain.chain[new_root_chain.indice]->result.best_move;
+                    new_root_chain.result.pv_length = new_root_chain.chain[new_root_chain.indice]->result.pv_length + 1;
+                    for(int j = 0; j < new_root_chain.chain[new_root_chain.indice]->result.pv_length; j++)
+                      new_root_chain.result.PV[j+1] = new_root_chain.chain[new_root_chain.indice]->result.PV[j];
+                    new_root_chain.result.PV[0] = new_root_chain.chain[new_root_chain.indice]->result.best_move;
+                  }
+                  new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
                 }
-                new_root_chain.plateau.alpha = MAX(new_root_chain.plateau.alpha, child_score);
 
               }
               new_root_chain.fini = 1;
@@ -926,14 +931,17 @@ int main(int argc, char **argv)
                 printf("#%d je recupere le travail poir le noeud %p\n",rang, adresse[envoyeur] );
                 result_t new_child_result;
                 MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-                int child_score = -new_child_result.score;
-                if (child_score > adresse[envoyeur]->result.score){
-                 adresse[envoyeur]->result.score = child_score;
-                 adresse[envoyeur]->result.best_move = new_child_result.best_move;
-                 adresse[envoyeur]->result.pv_length = new_child_result.pv_length + 1;
-                 for(int j = 0; j < new_child_result.pv_length; j++)
-                  adresse[envoyeur]->result.PV[j+1] = new_child_result.PV[j];
-                 adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
+                int child_score = new_child_result.score;
+                #pragma omp critical
+                {
+                  if (child_score > adresse[envoyeur]->result.score){
+                   adresse[envoyeur]->result.score = child_score;
+                   adresse[envoyeur]->result.best_move = new_child_result.best_move;
+                   adresse[envoyeur]->result.pv_length = new_child_result.pv_length + 1;
+                   for(int j = 0; j < new_child_result.pv_length; j++)
+                    adresse[envoyeur]->result.PV[j+1] = new_child_result.PV[j];
+                   adresse[envoyeur]->result.PV[0] = new_child_result.best_move;
+                  }
                 }
                 // On augmente l'indice de fin
                 #pragma omp critical
@@ -1019,14 +1027,16 @@ int main(int argc, char **argv)
                   printf("#%d fini evaluate pour le move %d\n", rang, root_chain.moves[root_chain.indice]);
                   
                   int child_score = -root_chain.chain[root_chain.indice]->result.score;
-
-                  if (child_score > root_chain.chain[root_chain.indice]->result.score) {
-                   root_chain.result.score = child_score;
-                   root_chain.result.best_move = root_chain.moves[root_chain.indice];
-                   root_chain.result.pv_length = root_chain.chain[root_chain.indice]->result.pv_length + 1;
-                   for(int j = 0; j < root_chain.chain[root_chain.indice]->result.pv_length; j++)
-                    root_chain.result.PV[j+1] = root_chain.chain[root_chain.indice]->result.PV[j];
-                   root_chain.result.PV[0] = root_chain.moves[root_chain.indice];
+                  #pragma omp critical
+                  {
+                    if (child_score > root_chain.chain[root_chain.indice]->result.score) {
+                     root_chain.result.score = child_score;
+                     root_chain.result.best_move = root_chain.moves[root_chain.indice];
+                     root_chain.result.pv_length = root_chain.chain[root_chain.indice]->result.pv_length + 1;
+                     for(int j = 0; j < root_chain.chain[root_chain.indice]->result.pv_length; j++)
+                      root_chain.result.PV[j+1] = root_chain.chain[root_chain.indice]->result.PV[j];
+                     root_chain.result.PV[0] = root_chain.moves[root_chain.indice];
+                   }
 
                   }
                   //free(root_chain.chain[root_chain.indice]);
