@@ -333,7 +333,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         if(new_over == 1){
           printf("#ROOT J'ai le résultat pour %d\n", demandeur);
           // On envoit le result au demandeur
-          MPI_Send(&new_root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
+          MPI_Send(&new_root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT, MPI_COMM_WORLD);
           // on va se placer en émission d'un jeton de calcul
           #pragma omp critical
           over = 1;
