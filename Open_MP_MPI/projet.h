@@ -74,15 +74,15 @@ typedef struct {
 (pour chaque move on a un ponteur vers la structure correspondante)
 C'est une liste chaînée */  
 typedef struct chained {
-  int fini;
-  int bien_def;
-  int fixe;
-  int indice;
-  int indice_fin;
+  unsigned short int fini;
+  unsigned short int bien_def;
+  unsigned short int fixe;
+  unsigned short int indice;
+  unsigned short int indice_fin;
   result_t result;
   tree_t plateau;
   move_t* moves;
-  int n_moves;
+  unsigned short int n_moves;
   struct chained** chain;
 }chained_t;
 
