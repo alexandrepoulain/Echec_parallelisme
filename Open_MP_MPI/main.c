@@ -467,7 +467,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                         MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         // On précise qu'une nouvelle région vient d'être crée
-                        free(parcours);
                     }
                     else
                     {
@@ -499,7 +498,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                       MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                       //printf("#ROOT j'envoie du calcul à %d\n", envoyeur);
                       MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
-                      free(parcours);
                     }
                     else{
                       // Du coup on transmet juste
@@ -593,7 +591,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             root_chain->fini = 1;
             for(int i = 0; i<root_chain->n_moves; i++)
               free(root_chain->chain[i]);
-            //free(root_chain->chain);
+            free(root_chain->chain);
             //free(root_chain->moves);
             
           
@@ -1008,7 +1006,7 @@ int main(int argc, char **argv)
                         MPI_Send(&parcours->plateau,1,mpi_tree_t, envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         MPI_Send(&parcours->moves[parcours->fixe],1,MPI_INT,envoyeur, TAG_DEMANDE, MPI_COMM_WORLD);
                         //printf("#%d envoie du calcul à %d à une profondeur d'arbre %d\n",rang, envoyeur, root_chain.plateau.depth);
-                        free(parcours);
+
                       }
                       else
                       {
