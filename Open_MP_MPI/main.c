@@ -422,6 +422,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             int new_count;
             MPI_Probe(status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD, &status);
             MPI_Get_count(&status, MPI_INT, &new_count);
+            new_root_chain.moves = calloc(new_count, sizeof(int));
             MPI_Recv(&new_root_chain.moves[0],new_count,MPI_INT,status.MPI_SOURCE, TAG_DEMANDE, MPI_COMM_WORLD,&status); 
             new_root_chain.n_moves=new_count;
             new_root_chain.indice_fin=new_count;
