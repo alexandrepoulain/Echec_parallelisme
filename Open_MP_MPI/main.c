@@ -429,6 +429,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             new_root_chain.fixe = new_count;
             new_root_chain.indice=0;
             new_root_chain.bien_def=1;
+            new_root_chain.chain = calloc(new_count, sizeof(chained_t*));
             // On signale au tread de calcul qu'il peux y aller
             #pragma omp critical
             go = 1;
