@@ -1029,7 +1029,7 @@ int main(int argc, char **argv)
               #pragma omp critical
               {
                 root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
-                root_chain.result.score = 0;
+                root_chain.result.score = -MAX_SCORE - 1;
               }
               printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
               
@@ -1045,7 +1045,7 @@ int main(int argc, char **argv)
                   
                   
                   
-                    int child_score = -root_chain.chain[root_chain.indice]->result.score;
+                    int child_score = root_chain.chain[root_chain.indice]->result.score;
                     if (child_score > root_chain.result.score) {
                       #pragma omp critical
                       {
