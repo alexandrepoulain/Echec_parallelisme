@@ -931,9 +931,10 @@ int main(int argc, char **argv)
                 printf("#%d je recupere le travail poir le noeud %p\n",rang, adresse[envoyeur] );
                 result_t new_child_result;
                 MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-                int child_score = new_child_result.score;
                 #pragma omp critical
                 {
+                  int child_score = new_child_result.score;
+                
                   if (child_score > adresse[envoyeur]->result.score){
                    adresse[envoyeur]->result.score = child_score;
                    adresse[envoyeur]->result.best_move = new_child_result.best_move;
