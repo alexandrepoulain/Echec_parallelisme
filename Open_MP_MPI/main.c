@@ -353,7 +353,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             nb_regions--;
             #pragma omp critical
             {
-              int child_score = child_result.score;
+              int child_score = -child_result.score;
               if (child_score > root_chain->result.score){
                 printf("#ROOT meilleur result par %d\n", status.MPI_SOURCE);
                 root_chain->result.score = child_score;
@@ -607,6 +607,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             // le process de calcul nous signale qu'on peux y aller
             if (temp_go)
             {
+              new_root_chain.result.score = -MAX_SCORE - 1;
               printf("#ROOT je rentre dans le nouveau calcul \n");
               for (new_root_chain.indice = 0; new_root_chain.indice < new_root_chain.n_moves; new_root_chain.indice++) 
               {
@@ -1027,7 +1028,7 @@ int main(int argc, char **argv)
               #pragma omp critical
               {
                 root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
-                root_chain.result.score = check(&root_chain.plateau) ? -MAX_SCORE : CERTAIN_DRAW;
+                root_chain.result.score = -MAX_SCORE - 1;
               }
               printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
               
