@@ -474,7 +474,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                       //printf("#ROOT pas de calcul je transmet\n");
                       MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
-                    free(parcours);
+                    
                   }
                   // sinon on transmet le jeton au suivant 
                   else
@@ -506,7 +506,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
                       //printf("#ROOT pas de calcul je transmet\n");
                       MPI_Send(&envoyeur,1,MPI_INT,1, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                     }
-                    free(parcours);
+                    
                   }
                   else{
                     // Du coup on transmet juste
@@ -1015,7 +1015,7 @@ int main(int argc, char **argv)
                         // Du coup on transmet juste
                         MPI_Send(&envoyeur,1,MPI_INT,(rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
                       }
-                      free(parcours);
+                      
                     }
                     else
                     {
