@@ -13,6 +13,7 @@
 #define TAG_RESULT_DEMANDE 4
 #define TAG_END 5
 #define TAG_RAPPORT 6
+#define TAG_GO 7
 
 unsigned long long int node_searched = 0;
 
@@ -304,6 +305,11 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           nb_reg++;
         }
       }
+      for(int k = nb_regions; k < NP; k++ ){
+        int a = 0;
+        MPI_Send(&a, 1, MPI_INT, k+1, TAG_GO, MPI_COMM_WORLD);
+      }
+
       // On retire la région dont le maître s'occupe
       
       printf("#ROOT fin initialisation\n"); 
@@ -902,6 +908,13 @@ int main(int argc, char **argv)
                   // on stocke à qui on doit renvoyer
                   demandeur = 0;
                 }
+              }
+              if(tag==TAG_GO)
+              {
+                int a;
+                MPI_Recv(&a,1,MPI_INT,0,TAG_GO, MPI_COMM_WORLD, &status);
+                int moi = rang; 
+                MPI_Send(&moi, 1, MPI_INT, (rang+1)%NP, TAG_JETON_CALCUL, MPI_COMM_WORLD);
               }
               
               // Si on reçoit une demande
