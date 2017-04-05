@@ -589,6 +589,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             for(int i = 0; i<root_chain->n_moves; i++)
               free(root_chain->chain[i]);
             free(root_chain->chain);
+            free(root_chain->moves);
             
           
           #pragma omp critical 
@@ -649,6 +650,8 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
               }
               for(int i = 0; i<new_root_chain.n_moves; i++)
                 free(new_root_chain.chain[i]);
+              free(new_root_chain.moves);
+              free(new_root_chain.chain);
               //printf("#ROOT fini d'attendre\n");
               
               // On a fini le calcul
@@ -1087,6 +1090,8 @@ int main(int argc, char **argv)
                 }
                 for(int i = 0; i<root_chain.n_moves; i++)
                   free(root_chain.chain[i]);
+                free(root_chain.chain);
+                free(root_chain.moves);
                 //printf("#%d Fini le calcul\n", rang);
               #pragma omp critical
               {
