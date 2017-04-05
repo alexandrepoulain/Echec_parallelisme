@@ -305,7 +305,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           nb_reg++;
         }
       }
-      for(int k = nb_regions; k < NP; k++ ){
+      for(int k = nb_regions; k+1 < NP; k++ ){
         int a = 0;
         MPI_Send(&a, 1, MPI_INT, k+1, TAG_GO, MPI_COMM_WORLD);
       }
