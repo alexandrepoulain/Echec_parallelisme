@@ -1045,7 +1045,7 @@ int main(int argc, char **argv)
                   
                   
                   
-                    int child_score = root_chain.chain[root_chain.indice]->result.score;
+                    int child_score = -root_chain.chain[root_chain.indice]->result.score;
                     if (child_score > root_chain.result.score) {
                       #pragma omp critical
                       {
