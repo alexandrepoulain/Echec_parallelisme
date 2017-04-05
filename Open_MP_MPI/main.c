@@ -836,9 +836,10 @@ int main(int argc, char **argv)
             // Si le thread de calcul a fini on envoit le result au demandeur
             if(over == 1 && attente == 0)
             {
-              printf("#%d essaye d'envoyer un result à %d en sous traitance \n", rang, demandeur);
+              
               // envoit du result
               if(sous_traitance_0 == 1){
+                printf("#%d essaye d'envoyer un result à %d en sous traitance \n", rang, demandeur);
                 MPI_Send(&root_chain.result, 1, mpi_result_t, demandeur, TAG_RESULT_DEMANDE, MPI_COMM_WORLD);
                 sous_traitance_0 = 0;
               }
@@ -952,7 +953,9 @@ int main(int argc, char **argv)
                 
                 // On augmente l'indice de fin
                 #pragma omp critical
-                adresse[envoyeur]->indice_fin++;
+                {
+                  adresse[envoyeur]->indice_fin++;
+                }
                 printf("#%d j'ai reçu un resultat de %d et maintenant indice fin = %d et n_moves = %d et l'indice de calcul = %d et fixe = %d \n", rang, envoyeur, adresse[envoyeur]->indice_fin, adresse[envoyeur]->n_moves, adresse[envoyeur]->indice, adresse[envoyeur]->fixe);
               }
               
