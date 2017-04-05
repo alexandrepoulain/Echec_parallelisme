@@ -680,6 +680,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
 
 void decide(chained_t* root_chain, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
+  root_chain->result.score= -MAX_SCORE -1;
 	printf("#ROOT rentre dans decide\n");
 	for (int depth = 1;; depth++) {
 		root_chain->plateau.depth = depth;
