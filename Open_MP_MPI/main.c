@@ -196,7 +196,6 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
 
   root_chain->moves = calloc(MAX_MOVES,sizeof(move_t));
   printf("#ROOT Test\n");
-  root_chain->result.score = -MAX_SCORE - 1;
   root_chain->result.pv_length = 0;
 
   if (test_draw_or_victory(&root_chain->plateau, &root_chain->result))
