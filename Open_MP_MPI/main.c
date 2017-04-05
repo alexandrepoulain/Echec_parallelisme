@@ -941,7 +941,7 @@ int main(int argc, char **argv)
                 result_t new_child_result;
                 MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
                 
-                  int child_score = -new_child_result.score;
+                  int child_score = new_child_result.score;
                 
                   if (child_score > adresse[envoyeur]->result.score){
                     #pragma omp critical
@@ -1029,7 +1029,7 @@ int main(int argc, char **argv)
               #pragma omp critical
               {
                 root_chain.chain = calloc(root_chain.n_moves, sizeof(chained_t*));
-                root_chain.result.score = -MAX_SCORE - 1;
+                root_chain.result.score = 0;
               }
               printf("#%d commence le calcul sur %d moves \n", rang, temp_nb_elem);
               
