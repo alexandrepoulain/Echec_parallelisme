@@ -390,7 +390,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             printf("#%d je recupere le travail poir le noeud %p\n",rang, adresse[envoyeur] );
             result_t new_child_result;
             MPI_Recv(&new_child_result, 1, mpi_result_t, envoyeur, tag, MPI_COMM_WORLD, &status);
-            int child_score = new_child_result.score;
+            int child_score = -new_child_result.score;
             #pragma omp critical
             {
               if (child_score > adresse[envoyeur]->result.score){
