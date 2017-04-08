@@ -1,4 +1,33 @@
-# Echec_parallelisme
+Echec_parallelisme
+===
+    N8-IPA PARALLELISME
+    FORTIN Pierre
+
+Date: 07/052017
+
+    ALOUI Driss
+    POULAIN Alexandre
+    
+MAIN 4 Polytech Paris UPMC
+
+
+Introduction
+------------
+Le but du projet est de paralléliser un programme séquentiel. Ce programme prend en entrée une position du jeu d'échec, qu'il tente de décider, c'est-à-dire renvoyer l'une de ces trois options :
+- Le joueur blanc peut gagner, quoi que fasse le joueur noir
+- Le joueur noir peut gagner, quoi que fasse le joueur banc
+- La partie sera nulle
+
+Utilisation
+------------
+    Make
+    Make exec
+    Make clean
+    
+Attention certaines bibliothèques peuvent être nécessaire, en plus des bibliothèques standards.
+
+Quelques tests
+------------
 
 -------- 4k//4K//4P w --------
 
