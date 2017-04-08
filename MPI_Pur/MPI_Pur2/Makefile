@@ -14,6 +14,5 @@ decide: main.o aux.o
 
 clean:
 	rm -f *.o decide
-
-exec:
-	mpirun -n 4 -hostfile hostfile --map-by node ./decide "4k//4K//4P w"  
+run:
+	mpirun -n 4 -hostfile hostfile --map-by node ./decide "4k//4K/4P w"

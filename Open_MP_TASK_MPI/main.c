@@ -1,7 +1,7 @@
 #include "projet.h"
 
 /* 2017-02-23 : version 1.0 */
-/* Version MPI_Open MP: maître-esclaves + Open MP 
+/* Version MPI_Open MP Task: maître-esclaves + open MP avec utilisation des taches
   Le maître envoi le premier niveau de l'arbre aux esclaves
   Problèmes: - le maître ne calcule pas
               - Une fois fini un esclave envoie son résultat et attend (il devrait aider)
@@ -52,47 +52,21 @@ void evaluate(tree_t * T, result_t *result)
     sort_moves(T, n_moves, moves);
 
   /* évalue récursivement les positions accessibles à partir d'ici */
-  if(T->height == 0){
-    #pragma omp parallel for schedule(runtime)
+
     for (int i = 0; i < n_moves; i++) {
 
-      tree_t child;
+    tree_t child;
       result_t child_result;
-
-      play_move(T, moves[i], &child);
-
-      evaluate(&child, &child_result);
-
-      int child_score = -child_result.score;
-
-#pragma omp critical
+	if(T->depth-T->height>9){
+		
+#pragma omp task untied
 {
-      if (child_score > result->score) {
-       result->score = child_score;
-       result->best_move = moves[i];
-       result->pv_length = child_result.pv_length + 1;
-       for(int j = 0; j < child_result.pv_length; j++)
-        result->PV[j+1] = child_result.PV[j];
-      result->PV[0] = moves[i];
-    }
-}
-    //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
-    //  break;    
-
-    T->alpha = MAX(T->alpha, child_score);
-  }
-}
-else{
-  for (int i = 0; i < n_moves; i++) {
-
-      tree_t child;
-      result_t child_result;
+  
 
       play_move(T, moves[i], &child);
-
-      evaluate(&child, &child_result);
-
-      int child_score = -child_result.score;
+		//printf("TACHE CREEE n%d m%d\n",child.height,i);
+		evaluate(&child, &child_result);
+		      int child_score = -child_result.score;
 
       if (child_score > result->score) {
        result->score = child_score;
@@ -107,9 +81,33 @@ else{
     //  break;    
 
     T->alpha = MAX(T->alpha, child_score);
-  }
 }
 
+	}else{
+
+
+      play_move(T, moves[i], &child);
+		evaluate(&child, &child_result);
+		      int child_score = -child_result.score;
+
+      if (child_score > result->score) {
+       result->score = child_score;
+       result->best_move = moves[i];
+       result->pv_length = child_result.pv_length + 1;
+       for(int j = 0; j < child_result.pv_length; j++)
+        result->PV[j+1] = child_result.PV[j];
+      result->PV[0] = moves[i];
+    }
+
+    //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+    //  break;    
+
+    T->alpha = MAX(T->alpha, child_score);
+	}
+
+
+  }
+#pragma omp taskwait
 if (TRANSPOSITION_TABLE)
   tt_store(T, result);
 }
@@ -251,11 +249,11 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status)
 {
-  for (int depth = 1;; depth++) {
-    T->depth = depth;
-    T->height = 0;
-    T->alpha_start = T->alpha = -MAX_SCORE - 1;
-    T->beta = MAX_SCORE + 1;
+	for (int depth = 1;; depth++) {
+		T->depth = depth;
+		T->height = 0;
+		T->alpha_start = T->alpha = -MAX_SCORE - 1;
+		T->beta = MAX_SCORE + 1;
     printf("=====================================\n");
     evaluate_root(T, result, tag, NP, status);
 
@@ -412,6 +410,8 @@ int main(int argc, char **argv)
       //printf("#%d move = %d\n",rang,  move);
       play_move(&root_proc, move, &child);
       //printf("#%d rentre récursivement\n", rang);
+#pragma omp parallel
+   #pragma omp single 
       evaluate(&child, &child_result);
       int child_score = -child_result.score;
       root_proc.alpha = MAX(root_proc.alpha, child_score);
@@ -429,4 +429,3 @@ int main(int argc, char **argv)
   return 0;
 
 }
-
