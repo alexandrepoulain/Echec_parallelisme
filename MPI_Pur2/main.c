@@ -128,14 +128,14 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 			for(int j = 0; j< n_moves;j++){
 				if(p == numdespremiersProcess[j]){
 				//envoie des result
-					MPI_Send(&child_result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
+					MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
 				}	
 			}
 		}
 		 
 	}
 //cas ou moins de processus que de move
-	if(R2 =< 1 && R != 1){
+	if(R2 <= 1 && R != 1){
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -198,7 +198,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 			}
 		}else{
 		//envoie des result
-			MPI_Send(&child_result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
+			MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
 		}
 	}
 //cas ou 1 seul processus  -> evaluate normale
@@ -235,7 +235,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 }
 
 
-void decide(tree_t * T, result_t *result, int p, int np,status,tag)
+void decide(tree_t * T, result_t *result, int p, int np,MPI_Status status, int tag)
 {
 	for (int depth = 1;; depth++) {
 		T->depth = depth;
