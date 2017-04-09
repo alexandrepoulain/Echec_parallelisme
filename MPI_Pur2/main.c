@@ -54,6 +54,21 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 	
 //cas ou plus de processus que de move
 	if(R2 > 1 && R != 1){
+	  /* Le result */
+	  const int nitems2=4;
+	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
+	  MPI_Datatype types2[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+	  MPI_Datatype mpi_result_t;
+	  MPI_Aint     offsets2[4];
+
+	  offsets2[0] = offsetof(result_t, score);
+	  offsets2[1] = offsetof(result_t, best_move);
+	  offsets2[2] = offsetof(result_t, pv_length);
+	  offsets2[3] = offsetof(result_t, PV);
+
+	  MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
+	  MPI_Type_commit(&mpi_result_t);
+		  
 		int supp = 1;
 		int* numdespremiersProcess = (int*) malloc(sizeof(int)*n_moves);
 		/* évalue récursivement les positions accessibles à partir d'ici */
@@ -121,6 +136,21 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 	}
 //cas ou moins de processus que de move
 	if(R2 =< 1 && R != 1){
+	  /* Le result */
+	  const int nitems2=4;
+	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
+	  MPI_Datatype types2[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+	  MPI_Datatype mpi_result_t;
+	  MPI_Aint     offsets2[4];
+
+	  offsets2[0] = offsetof(result_t, score);
+	  offsets2[1] = offsetof(result_t, best_move);
+	  offsets2[2] = offsetof(result_t, pv_length);
+	  offsets2[3] = offsetof(result_t, PV);
+
+	  MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
+	  MPI_Type_commit(&mpi_result_t);
+
 	      /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
 			if((i%R)+f2==p){
@@ -255,24 +285,7 @@ int main(int argc, char **argv)
   // Le rang des processus
   MPI_Comm_rank(MPI_COMM_WORLD, &rang);
   // le status
-  MPI_Status status;
-	  
-  /* Le result */
-  const int nitems2=4;
-  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
-  MPI_Datatype types2[4] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT};
-  MPI_Datatype mpi_result_t;
-  MPI_Aint     offsets2[4];
-
-  offsets2[0] = offsetof(result_t, score);
-  offsets2[1] = offsetof(result_t, best_move);
-  offsets2[2] = offsetof(result_t, pv_length);
-  offsets2[3] = offsetof(result_t, PV);
-
-  MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
-  MPI_Type_commit(&mpi_result_t);
-  
-  
+  MPI_Status status; 
 	
 	tree_t root;
 	result_t result;
