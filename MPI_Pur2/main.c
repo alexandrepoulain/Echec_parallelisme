@@ -253,18 +253,18 @@ void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int 
 		          S  =  0;
 	        	  tag = 0;
 	        	  for(int i = 1;i<np;i++) 
-	        	  	MPI_Send(S, 1, MPI_INT, i, tag, MPI_COMM_WORLD);
+	        	  	MPI_Send(&S, 1, MPI_INT, i, tag, MPI_COMM_WORLD);
 		          break;
 	          	}else{ //send continue
 	          	  S  = 1;
 	          	  tag = 0;
 	          	  for(int i = 1;i<np;i++) 
-	          	  	MPI_Send(S, 1, MPI_INT, i, tag, MPI_COMM_WORLD);
+	          	  	MPI_Send(&S, 1, MPI_INT, i, tag, MPI_COMM_WORLD);
 	          	  tag = 10;
 	          	}        
                	}else{
                		//receive on f quoi ensuite?
-               		MPI_Recv(S, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+               		MPI_Recv(&S, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
                		if(S == 0)
        			  break;
 		  	tag = 10;
