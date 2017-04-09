@@ -278,7 +278,7 @@ int main(int argc, char **argv)
   /* Init MPI */
   int NP, rang, tag = 10;
   int provided;
-  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
+  //MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
   // nombre de processus
   
   MPI_Comm_size(MPI_COMM_WORLD, &NP);
