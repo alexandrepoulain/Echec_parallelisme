@@ -235,9 +235,10 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 }
 
 
-void decide(tree_t * T, result_t *result, int p, int np,MPI_Status status, int tag)
+void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int tag)
 {
 	for (int depth = 1;; depth++) {
+		int S;
 		T->depth = depth;
 		T->height = 0;
 		T->alpha_start = T->alpha = -MAX_SCORE - 1;
@@ -248,7 +249,6 @@ void decide(tree_t * T, result_t *result, int p, int np,MPI_Status status, int t
 		if(p==0){
 		        printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
 		        print_pv(T, result);
-		        int S;
 		        if (DEFINITIVE(result->score)){ //send finalize
 		          S  =  0;
 	        	  tag = 0;
@@ -310,7 +310,7 @@ int main(int argc, char **argv)
  /* debut du chronometrage */
   debut = my_gettimeofday();   
   } 
-	decide(&root, &result,rang, status,tag);
+	decide(&root, &result,rang, NP, status,tag);
   if(rang==0){
   /* fin du chronometrage */
   fin = my_gettimeofday();
