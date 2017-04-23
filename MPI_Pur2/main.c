@@ -156,7 +156,9 @@ printf("#%d cas ou moins de processus que de move\n", p);
 
 	      /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
+printf("#%d for i : %d \n", p,i);
 			if((i%R)+f2==p){
+printf("#%d for if i : %d \n", p,i);
 				tree_t child;
 				result_t child_result;
 				
