@@ -212,7 +212,7 @@ printf("#%d reception result %d 9\n",p,i);
 			}
 printf("#%d reception des result2\n",p);
 		}else{
-printf("#%d envoie des result result->score\n",p,result->score);
+printf("#%d envoie des result result->score %d\n",p,result->score);
 		//envoie des result
 			MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
 printf("#%d envoie des result 2\n",p);
