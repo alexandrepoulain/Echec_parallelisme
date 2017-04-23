@@ -199,6 +199,7 @@ printf("#%d reception result %i 2\n",p,i);
 						result->PV[j+1] = child_result.PV[j];
 					result->PV[0] = moves[i];
 				}
+printf("#%d reception result %i 3\n",p,i);
 			}
 printf("#%d reception des result2\n",p);
 		}else{
