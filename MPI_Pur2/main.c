@@ -163,9 +163,9 @@ printf("\t\t\t\t#%d for if i : %d \n", p,i);
 				result_t child_result;
 				
 				play_move(T, moves[i], &child);
-				
+printf("\t\t\t\t#%d for if 2 i : %d \n", p,i);				
 				evaluate(&child, &child_result,1,p,p,status,tag);
-				         
+printf("\t\t\t\t#%d for if 3 i : %d \n", p,i);				         
 				int child_score = -child_result.score;
 
 				if (child_score > result->score) {
