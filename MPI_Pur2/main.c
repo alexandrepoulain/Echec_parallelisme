@@ -88,7 +88,7 @@ printf("\t\t#%d cas ou plus de processus que de move\n",p);
 				
 				play_move(T, moves[i], &child);
 				
-				evaluate(&child, &child_result,R2+supp,f,p,status,tag);
+				evaluate(&child, &child_result,R2+supp,f,p,status,tag+1);
 				         
 				int child_score = -child_result.score;
 
@@ -156,16 +156,12 @@ printf("\t\t#%d cas ou moins de processus que de move\n", p);
 
 	      /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
-printf("\t\t\t#%d for i : %d \n", p,i);
 			if((i%R)+f2==p){
-printf("\t\t\t\t#%d for if i : %d \n", p,i);
 				tree_t child;
 				result_t child_result;
 				
-				play_move(T, moves[i], &child);
-printf("\t\t\t\t#%d for if 2 i : %d \n", p,i);				
-				evaluate(&child, &child_result,1,p,p,status,tag);
-printf("\t\t\t\t#%d for if 3 i : %d \n", p,i);				         
+				play_move(T, moves[i], &child);			
+				evaluate(&child, &child_result,1,p,p,status,tag+1);			         
 				int child_score = -child_result.score;
 
 				if (child_score > result->score) {
@@ -188,6 +184,7 @@ printf("\t\t\t\t#%d for if 3 i : %d \n", p,i);
 		  tt_store(T, result);
 		if(p==f2){
 		//reception des result
+printf("#%d reception des result\n",p);
 			for (int i = f2+1; i < R+f2; i++) {
 				result_t child_result;
 				MPI_Recv(&child_result, 1, mpi_result_t, i, tag, MPI_COMM_WORLD, &status);
@@ -202,6 +199,7 @@ printf("\t\t\t\t#%d for if 3 i : %d \n", p,i);
 				}
 			}
 		}else{
+printf("#%d envoie des result\n",p);
 		//envoie des result
 			MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
 		}
@@ -216,7 +214,7 @@ printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
 		        
 		        play_move(T, moves[i], &child);
 		        
-		        evaluate(&child, &child_result,1,p,p,status,tag);
+		        evaluate(&child, &child_result,1,p,p,status,tag+1);
 		                 
 		        int child_score = -child_result.score;
 
