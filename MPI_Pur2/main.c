@@ -191,15 +191,21 @@ printf("#%d reception result %i\n",p,i);
 				MPI_Recv(&child_result, 1, mpi_result_t, i, tag, MPI_COMM_WORLD, &status);
 printf("#%d reception result %i 2\n",p,i);
 				int child_score = -child_result.score;
+printf("#%d reception result %i 3\n",p,i);
 				if (child_score > result->score){
+printf("#%d reception result %i 4\n",p,i);
 					result->score = child_score;
+printf("#%d reception result %i 5\n",p,i);
 					result->best_move = moves[i];
+printf("#%d reception result %i 6\n",p,i);
 					result->pv_length = child_result.pv_length + 1;
+printf("#%d reception result %i 7\n",p,i);
 					for(int j = 0; j < child_result.pv_length; j++)
 						result->PV[j+1] = child_result.PV[j];
+printf("#%d reception result %i 8\n",p,i);
 					result->PV[0] = moves[i];
 				}
-printf("#%d reception result %i 3\n",p,i);
+printf("#%d reception result %i 9\n",p,i);
 			}
 printf("#%d reception des result2\n",p);
 		}else{
