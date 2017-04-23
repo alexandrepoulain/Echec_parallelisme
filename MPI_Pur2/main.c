@@ -288,7 +288,7 @@ int main(int argc, char **argv)
   // le status
   MPI_Status status; 
 	
-	printf("je suis le processus %d",rang);
+	printf("je suis le processus %d\n",rang);
 	
 	tree_t root;
 	result_t result;
