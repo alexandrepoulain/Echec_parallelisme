@@ -198,10 +198,12 @@ printf("#%d reception des result\n",p);
 					result->PV[0] = moves[i];
 				}
 			}
+printf("#%d reception des result2\n",p);
 		}else{
 printf("#%d envoie des result\n",p);
 		//envoie des result
 			MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
+printf("#%d envoie des result 2\n",p);
 		}
 	}
 //cas ou 1 seul processus  -> evaluate normale
