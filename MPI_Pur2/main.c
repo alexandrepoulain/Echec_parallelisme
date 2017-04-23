@@ -201,9 +201,9 @@ printf("#%d reception result %d 6\n",p,i);
 					result->pv_length = child_result.pv_length + 1;
 printf("#%d reception result %d 7\n",p,i);
 					for(int j = 0; j < child_result.pv_length; j++){
-						printf("#%d reception result %d %d 71\n",p,i,j);
+printf("#%d reception result %d %d 71 %d\n",p,i,j,child_result.pv_length);
 						result->PV[j+1] = child_result.PV[j];
-						printf("#%d reception result %d %d 72\n",p,i,j);
+printf("#%d reception result %d %d 72 %d\n",p,i,j,child_result.pv_length);
 					}
 printf("#%d reception result %d 8\n",p,i);
 					result->PV[0] = moves[i];
