@@ -187,7 +187,9 @@ printf("\t\t#%d cas ou moins de processus que de move\n", p);
 printf("#%d reception des result\n",p);
 			for (int i = f2+1; i < R+f2; i++) {
 				result_t child_result;
+printf("#%d reception result %i 2\n",p,i);
 				MPI_Recv(&child_result, 1, mpi_result_t, i, tag, MPI_COMM_WORLD, &status);
+printf("#%d reception result %i 2\n",p,i);
 				int child_score = -child_result.score;
 				if (child_score > result->score){
 					result->score = child_score;
