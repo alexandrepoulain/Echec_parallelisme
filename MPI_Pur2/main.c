@@ -52,10 +52,10 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 	int R3 = R%n_moves;//nb de move / process (reste)
 	int f2 = f;//copie du premier numero de processus
 	
-printf("Evaluate R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",R, R2, R3, f, p, n_moves);
+printf("\tEvaluate R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
 	if(R2 > 1 && R != 1){
-printf("#%d cas ou plus de processus que de move\n",p);
+printf("\t\t#%d cas ou plus de processus que de move\n",p);
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -138,7 +138,7 @@ printf("#%d cas ou plus de processus que de move\n",p);
 	}
 //cas ou moins de processus que de move
 	if(R2 <= 1 && R != 1){
-printf("#%d cas ou moins de processus que de move\n", p);
+printf("\t\t#%d cas ou moins de processus que de move\n", p);
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -156,9 +156,9 @@ printf("#%d cas ou moins de processus que de move\n", p);
 
 	      /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
-printf("#%d for i : %d \n", p,i);
+printf("\t\t\t#%d for i : %d \n", p,i);
 			if((i%R)+f2==p){
-printf("#%d for if i : %d \n", p,i);
+printf("\t\t\t\t#%d for if i : %d \n", p,i);
 				tree_t child;
 				result_t child_result;
 				
@@ -208,7 +208,7 @@ printf("#%d for if i : %d \n", p,i);
 	}
 //cas ou 1 seul processus  -> evaluate normale
 	if(R2 == 0 && R == 1){
-printf("#%d cas ou 1 seul processus  -> evaluate normale\n", p);
+printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
         /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
 			tree_t child;
