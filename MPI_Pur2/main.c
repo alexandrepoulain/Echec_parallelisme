@@ -237,6 +237,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 
 void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int tag)
 {
+	printf("je suis le processus %d\n",p);
 	for (int depth = 1;; depth++) {
 		int S;
 		T->depth = depth;
