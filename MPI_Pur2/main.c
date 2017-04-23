@@ -14,7 +14,8 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 //R : nb de processus restant dispo, f : numero du premier procesus mpi restant dispo, p : numero de processus mpi
 //-> cette iteration va distribuer le travail au processus f, f+1, ... , f+R
 {
-        node_searched++;
+        printf("Evaluate R : %d f : %d p : %d\n",R,  f, p);
+	node_searched++;
   
         move_t moves[MAX_MOVES];
         int n_moves;
@@ -237,7 +238,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 
 void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int tag)
 {
-	printf("je suis le processus %d\n",p);
+	printf("decide p : %d np : %d\n",p, np);
 	for (int depth = 1;; depth++) {
 		int S;
 		T->depth = depth;
