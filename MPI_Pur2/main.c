@@ -308,8 +308,8 @@ int main(int argc, char **argv)
 	}
 
 	parse_FEN(argv[1], &root);
-	print_position(&root);
   if(rang==0){
+	print_position(&root);
  /* debut du chronometrage */
   debut = my_gettimeofday();   
   } 
