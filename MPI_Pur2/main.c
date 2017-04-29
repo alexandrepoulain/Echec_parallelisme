@@ -52,7 +52,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 	int R3 = R%n_moves;//nb process / move (reste)
 	int f2 = f;//copie du premier numero de processus
 	
-printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
+//printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
 	if(R2 >= 1 && R != 1){
 //printf("\t\t#%d cas ou plus de processus que de move\n",p);
@@ -242,7 +242,7 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 		if (TRANSPOSITION_TABLE)
 		  tt_store(T, result);
 	  }
-printf("\tFIN Evaluate #%d %d  result->score : %d \n", p, T->depth, result->score);
+//printf("\tFIN Evaluate #%d %d  result->score : %d \n", p, T->depth, result->score);
 }
 
 
