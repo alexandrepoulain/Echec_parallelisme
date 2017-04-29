@@ -129,7 +129,7 @@ printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 //result->pv_length = child_result.pv_length + 1;
 					result->pv_length = child_result.pv_length;
 					for(int j = 0; j < child_result.pv_length; j++)
-						result->PV[j+1] = child_result.PV[j];
+						result->PV[j] = child_result.PV[j];
 					//result->PV[0] = moves[i];
 					result->PV[0] = child_result.best_move;
 				}
@@ -206,7 +206,7 @@ printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 //result->pv_length = child_result.pv_length + 1;
 					result->pv_length = child_result.pv_length;
 					for(int j = 0; j < child_result.pv_length; j++){
-						result->PV[j+1] = child_result.PV[j];
+						result->PV[j] = child_result.PV[j];
 					}
 					//result->PV[0] = moves[i];
 					result->PV[0] = child_result.best_move;
