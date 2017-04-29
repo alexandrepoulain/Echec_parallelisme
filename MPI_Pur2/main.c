@@ -142,6 +142,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 		}
 		 
 	}
+	
 //cas ou moins de processus que de move
 	if(R2 < 1 && R != 1){
 //printf("\t\t#%d cas ou moins de processus que de move\n", p);
@@ -197,12 +198,14 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 				int child_score = -child_result.score;
 				if (child_score > result->score){
 					result->score = child_score;
-					result->best_move = moves[i];
+					//result->best_move = moves[i];
+					result->best_move = child_result.best_move;
 					result->pv_length = child_result.pv_length + 1;
 					for(int j = 0; j < child_result.pv_length; j++){
 						result->PV[j+1] = child_result.PV[j];
 					}
-					result->PV[0] = moves[i];
+					//result->PV[0] = moves[i];
+					result->PV[0] = child_result.best_move;
 				}
 			}
 		}else{
