@@ -262,6 +262,9 @@ void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int 
 		if(p==0)
                 	printf("=====================================\n");
 		evaluate(T, result,np,0,p,status,tag);
+printf("mtn %d\n",p);	
+int ig;
+scanf("%d", &ig);
 		if(p==0){
 		        printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
 		        print_pv(T, result);
