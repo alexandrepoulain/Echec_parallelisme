@@ -54,8 +54,8 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 	
 printf("\tEvaluate R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
-	if(R2 > 1 && R != 1){
-printf("\t\t#%d cas ou plus de processus que de move\n",p);
+	if(R2 >= 1 && R != 1){
+//printf("\t\t#%d cas ou plus de processus que de move\n",p);
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -73,6 +73,7 @@ printf("\t\t#%d cas ou plus de processus que de move\n",p);
 		  
 		int supp = 1;
 		int* numdespremiersProcess = (int*) malloc(sizeof(int)*n_moves);
+		int nbDef = 0;
 		/* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
 			if(R3==0){
@@ -81,8 +82,9 @@ printf("\t\t#%d cas ou plus de processus que de move\n",p);
 			if(p>=f&&p<f+R2+supp){
 				f+=R2+supp;
 				R3--;
-				numdespremiersProcess[i]=f;
-				
+				//numdespremiersProcess[i]=f;
+				numdespremiersProcess[nbDef]=f;
+				nbDef++;
 				tree_t child;
 				result_t child_result;
 				
@@ -113,32 +115,34 @@ printf("\t\t#%d cas ou plus de processus que de move\n",p);
 		
 		if(p==f2){
 		//reception des result
-			for (int i = 1; i < n_moves; i++) {
+			for (int i = f2+1; i < nbDef; i++) {
 				result_t child_result;
 				MPI_Recv(&child_result, 1, mpi_result_t, numdespremiersProcess[i], tag, MPI_COMM_WORLD, &status);
 				int child_score = -child_result.score;
 				if (child_score > result->score){
 					result->score = child_score;
-					result->best_move = moves[i];
+					//result->best_move = moves[i];
+					result->best_move = child_result.best_move;
 					result->pv_length = child_result.pv_length + 1;
 					for(int j = 0; j < child_result.pv_length; j++)
 						result->PV[j+1] = child_result.PV[j];
-					result->PV[0] = moves[i];
+					//result->PV[0] = moves[i];
+					result->PV[0] = child_result.best_move;
 				}
 			}
 		}else{
 			for(int j = 0; j< n_moves;j++){
 				if(p == numdespremiersProcess[j]){
 				//envoie des result
-					MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
+					MPI_Send(result, 1, mpi_result_t, f2, tag, MPI_COMM_WORLD);
 				}	
 			}
 		}
 		 
 	}
 //cas ou moins de processus que de move
-	if(R2 <= 1 && R != 1){
-printf("\t\t#%d cas ou moins de processus que de move\n", p);
+	if(R2 < 1 && R != 1){
+//printf("\t\t#%d cas ou moins de processus que de move\n", p);
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -184,43 +188,28 @@ printf("\t\t#%d cas ou moins de processus que de move\n", p);
 		  tt_store(T, result);
 		if(p==f2){
 		//reception des result
-printf("#%d reception des result\n",p);
 			for (int i = f2+1; i < R+f2; i++) {
 				result_t child_result;
-printf("#%d reception result %d\n",p,i);
 				MPI_Recv(&child_result, 1, mpi_result_t, i, tag, MPI_COMM_WORLD, &status);
-printf("#%d reception result %d 2\n",p,i);
 				int child_score = -child_result.score;
-printf("#%d reception result %d 3 child_score %d> result->score %d\n",p,i, child_score, result->score);
 				if (child_score > result->score){
-printf("#%d reception result %d 4\n",p,i);
 					result->score = child_score;
-printf("#%d reception result %d 5\n",p,i);
 					result->best_move = moves[i];
-printf("#%d reception result %d 6\n",p,i);
 					result->pv_length = child_result.pv_length + 1;
-printf("#%d reception result %d 7\n",p,i);
 					for(int j = 0; j < child_result.pv_length; j++){
-//printf("#%d reception result %d %d 71 %d\n",p,i,j,child_result.pv_length);
 						result->PV[j+1] = child_result.PV[j];
-//printf("#%d reception result %d %d 72 %d\n",p,i,j,child_result.pv_length);
 					}
-printf("#%d reception result %d 8\n",p,i);
 					result->PV[0] = moves[i];
 				}
-printf("#%d reception result %d 9\n",p,i);
 			}
-printf("#%d reception des result2\n",p);
 		}else{
-printf("#%d envoie des result result->score %d\n",p,result->score);
 		//envoie des result
-			MPI_Send(&result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
-printf("#%d envoie des result 2\n",p);
+			MPI_Send(result, 1, mpi_result_t, f2, tag, MPI_COMM_WORLD);
 		}
 	}
 //cas ou 1 seul processus  -> evaluate normale
 	if(R2 == 0 && R == 1){
-printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
+//printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
         /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
 			tree_t child;
@@ -255,7 +244,7 @@ printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
 
 void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int tag)
 {
-	printf("decide p : %d np : %d\n",p, np);
+	//printf("decide p : %d np : %d\n",p, np);
 	for (int depth = 1;; depth++) {
 		int S;
 		T->depth = depth;
@@ -307,7 +296,6 @@ int main(int argc, char **argv)
   // le status
   MPI_Status status; 
 	
-	printf("je suis le processus %d\n",rang);
 	
 	tree_t root;
 	result_t result;
