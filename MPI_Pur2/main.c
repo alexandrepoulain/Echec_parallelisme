@@ -55,7 +55,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 //printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
 	if(R2 >= 1 && R != 1){
-printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
+//printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou plus de processus que de move\n",p);
 
 	  /* Le result */
@@ -147,7 +147,7 @@ printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 	
 //cas ou moins de processus que de move
 	if(R2 < 1 && R != 1){
-printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
+//printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou moins de processus que de move\n", p);
 
 	  /* Le result */
@@ -219,7 +219,7 @@ printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 	}
 //cas ou 1 seul processus  -> evaluate normale
 	if(R2 == 0 && R == 1){
-printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
+//printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
         /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
@@ -266,9 +266,9 @@ void decide(tree_t * T, result_t *result, int p, int np, MPI_Status status, int 
 		if(p==0)
                 	printf("=====================================\n");
 		evaluate(T, result,np,0,p,status,tag);
-printf("mtn %d\n",p);	
-int ig;
-scanf("%d", &ig);
+//printf("mtn %d\n",p);	
+//int ig;
+//scanf("%d", &ig);
 		if(p==0){
 		        printf("depth: %d / score: %.2f / best_move : ", T->depth, 0.01 * result->score);
 		        print_pv(T, result);
