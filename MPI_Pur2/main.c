@@ -55,7 +55,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 //printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
 	if(R2 >= 1 && R != 1){
-printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
+printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou plus de processus que de move\n",p);
 
 	  /* Le result */
@@ -146,6 +146,7 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 	
 //cas ou moins de processus que de move
 	if(R2 < 1 && R != 1){
+printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou moins de processus que de move\n", p);
 
 	  /* Le result */
@@ -216,6 +217,7 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 	}
 //cas ou 1 seul processus  -> evaluate normale
 	if(R2 == 0 && R == 1){
+printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou 1 seul processus  -> evaluate normale\n", p);
         /* évalue récursivement les positions accessibles à partir d'ici */
 		for (int i = 0; i < n_moves; i++) {
