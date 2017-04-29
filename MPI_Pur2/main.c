@@ -15,7 +15,7 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 //-> cette iteration va distribuer le travail au processus f, f+1, ... , f+R
 {
 if(p==4)
-printf("\tEvaluate4 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
+printf("\tEvaluate4 #%d %d f : %d p : %d \n", p, T->depth, f, p);
 	node_searched++;
   
         move_t moves[MAX_MOVES];
