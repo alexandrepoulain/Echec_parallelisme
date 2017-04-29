@@ -48,14 +48,15 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
           sort_moves(T, n_moves, moves);
 
 
-	int R2 = (int)R/ n_moves;//nb de move / process
-	int R3 = R%n_moves;//nb de move / process (reste)
+	int R2 = (int)R/ n_moves;//nb process / move
+	int R3 = R%n_moves;//nb process / move (reste)
 	int f2 = f;//copie du premier numero de processus
 	
 printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
 	if(R2 >= 1 && R != 1){
 //printf("\t\t#%d cas ou plus de processus que de move\n",p);
+
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
@@ -79,12 +80,8 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 			if(R3==0){
 				supp = 0;
 			}
-			if(p>=f&&p<f+R2+supp){
-				f+=R2+supp;
-				R3--;
-				//numdespremiersProcess[i]=f;
-				numdespremiersProcess[nbDef]=f;
-				nbDef++;
+				
+			if(p>=f && p<f+R2+supp){
 				tree_t child;
 				result_t child_result;
 				
@@ -108,6 +105,11 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 
 				T->alpha = MAX(T->alpha, child_score);
 			}
+			numdespremiersProcess[nbDef]=f;//sauvegarde des num des premier nouveau process
+			nbDef++;//incrementation du compteur de premier process
+			f+=R2+supp;//numero du nouveau premier process pour lle prochain appel d evaluate
+			R3--;//desincrementation du reste
+			//numdespremiersProcess[i]=f;
 		}
 
 		if (TRANSPOSITION_TABLE)
@@ -143,6 +145,7 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 //cas ou moins de processus que de move
 	if(R2 < 1 && R != 1){
 //printf("\t\t#%d cas ou moins de processus que de move\n", p);
+
 	  /* Le result */
 	  const int nitems2=4;
 	  int          blocklengths2[4] = {1,1,1, MAX_DEPTH};
