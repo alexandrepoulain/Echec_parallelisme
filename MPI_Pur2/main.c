@@ -131,7 +131,7 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 				}
 			}
 		}else{
-			for(int j = 0; j< n_moves;j++){
+			for(int j = 1; j< nbDef;j++){
 				if(p == numdespremiersProcess[j]){
 				//envoie des result
 					MPI_Send(result, 1, mpi_result_t, f2, tag, MPI_COMM_WORLD);
