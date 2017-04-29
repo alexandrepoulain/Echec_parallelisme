@@ -56,8 +56,6 @@ printf("\tEvaluate4 #%d %d f : %d p : %d \n", p, T->depth, f, p);
 	
 //printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //cas ou plus de processus que de move
-	if(R2 >= 1 && R != 1){
-printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n", p, T->depth, R, R2, R3, f, p, n_moves);
 //printf("\t\t#%d cas ou plus de processus que de move\n",p);
 
 	  /* Le result */
@@ -128,7 +126,8 @@ printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 					result->score = child_score;
 					//result->best_move = moves[i];
 					result->best_move = child_result.best_move;
-					result->pv_length = child_result.pv_length + 1;
+//result->pv_length = child_result.pv_length + 1;
+					result->pv_length = child_result.pv_length;
 					for(int j = 0; j < child_result.pv_length; j++)
 						result->PV[j+1] = child_result.PV[j];
 					//result->PV[0] = moves[i];
@@ -204,7 +203,8 @@ printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 					result->score = child_score;
 					//result->best_move = moves[i];
 					result->best_move = child_result.best_move;
-					result->pv_length = child_result.pv_length + 1;
+//result->pv_length = child_result.pv_length + 1;
+					result->pv_length = child_result.pv_length;
 					for(int j = 0; j < child_result.pv_length; j++){
 						result->PV[j+1] = child_result.PV[j];
 					}
