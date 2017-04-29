@@ -121,7 +121,7 @@ printf("\tEvaluate1 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 			for (int i = 1; i < nbDef; i++) {
 				result_t child_result;
 				MPI_Recv(&child_result, 1, mpi_result_t, numdespremiersProcess[i], tag, MPI_COMM_WORLD, &status);
-				int child_score = -child_result.score;
+				int child_score = child_result.score;
 				if (child_score > result->score){
 					result->score = child_score;
 					//result->best_move = moves[i];
@@ -198,7 +198,7 @@ printf("\tEvaluate2 #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n"
 			for (int i = f2+1; i < R+f2; i++) {
 				result_t child_result;
 				MPI_Recv(&child_result, 1, mpi_result_t, i, tag, MPI_COMM_WORLD, &status);
-				int child_score = -child_result.score;
+				int child_score = child_result.score;
 				if (child_score > result->score){
 					result->score = child_score;
 					//result->best_move = moves[i];
