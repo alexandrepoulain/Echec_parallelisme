@@ -115,7 +115,7 @@ printf("\tEvaluate #%d %d R : %d R2 : %d R3 : %d f : %d p : %d n_moves : %d \n",
 		
 		if(p==f2){
 		//reception des result
-			for (int i = f2+1; i < nbDef; i++) {
+			for (int i = 1; i < nbDef; i++) {
 				result_t child_result;
 				MPI_Recv(&child_result, 1, mpi_result_t, numdespremiersProcess[i], tag, MPI_COMM_WORLD, &status);
 				int child_score = -child_result.score;
