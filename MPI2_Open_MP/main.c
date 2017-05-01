@@ -239,8 +239,8 @@ void evaluate(tree_t * T, result_t *result, int R, int f, int p, MPI_Status stat
 				          result->PV[0] = moves[i];
 				}
 }
-				if (ALPHA_BETA_PRUNING && child_score >= T->beta)
-				  break;    
+				//if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+				  //break;    
 
 				T->alpha = MAX(T->alpha, child_score);
 			}
