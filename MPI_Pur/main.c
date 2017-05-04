@@ -11,6 +11,8 @@
 #define TAG_TREE 3
 #define TAG_ALPHA 8
 #define TAG_RESULT 2
+#define TAG_SCORE 1
+#define TAG_CUT 9
 
 unsigned long long int node_searched = 0;
 
@@ -20,10 +22,8 @@ double my_gettimeofday(){
   return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
 }
 
-void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
+void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang, int* adress_score)
 {
-
-
   node_searched++;
   
   move_t moves[MAX_MOVES];
@@ -60,12 +60,31 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
   int flag = 0;
   for (int i = 0; i < n_moves; i++){
     
+   //printf("n_moves = %d\n", n_moves); 
+   //printf("i = %d\n", i);
+   MPI_Iprobe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+   //printf("flag = %d\n", flag); 
+    // Si on reçoit un message
+    if(flag == 1 && status.MPI_TAG == TAG_ALPHA){
+      //printf("receive an alpha\n");
+      // on met à jour le alpha courant
+      if(T->height == 1){
+        MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+      }
+      MPI_Send(adress_score, 1, MPI_INT, 0, TAG_SCORE, MPI_COMM_WORLD);
+    }
+    // si le maître nous coupe
+    if(flag==1 && status.MPI_TAG == TAG_CUT){
+      int temp;
+      MPI_Recv(&temp, 1, MPI_INT, 0, TAG_CUT, MPI_COMM_WORLD, &status);
+      return;
+    }
     tree_t child;
     result_t child_result;
 
     play_move(T, moves[i], &child);
 
-    evaluate(&child, &child_result, status, rang);
+    evaluate(&child, &child_result, status, rang, adress_score);
 
     int child_score = -child_result.score;
 
@@ -78,24 +97,11 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
     result->PV[0] = moves[i];
   }
 
-    
-  }
-  if(T->height == 1){
-     //printf("n_moves = %d\n", n_moves); 
-     //printf("i = %d\n", i);
-     MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
-     //printf("flag = %d\n", flag); 
-      // Si on reçoit un message
-      if(flag == 1){
-        printf("#%d receive an new alpha\n", rang);
-        // on met à jour le alpha courant
-        MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
-      }
-    }
-    if (ALPHA_BETA_PRUNING && child_score >= T->beta){
+  if (ALPHA_BETA_PRUNING && child_score >= T->beta){
     if(T->height == 1)
       printf("#%d coupe du calcul\n", rang);
-    break;  
+    break;    
+  }
 
   T->alpha = MAX(T->alpha, child_score);
 }
@@ -149,10 +155,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   int job_sent = 0;
   int compt_sent = 0;
   int indice[NP];
-  int check[NP];
-  for(int i=1;i<NP;i++)
-    check[i]=1;
-
   for(int i =0; i <n_moves; i++){
     printf("#ROOT move[%d] = %d \n", i, moves[i]);
   }
@@ -180,7 +182,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     //  On compare avec la valeur déjà présente
     result_t child_result;
     MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
-    check[status.MPI_SOURCE] = 0;
     printf("#ROOT reçu de %d \n", status.MPI_SOURCE);
     job_sent--;
     int child_score = -child_result.score;
@@ -199,9 +200,16 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       // Communication aux autres processus de l'alpha
       if(T->depth > 1){
         for(int i=1; i<NP; i++){
-          if(i != status.MPI_SOURCE && check[i] == 1){
+          if(i != status.MPI_SOURCE){
             printf("ROOT envoie à %d le alpha reçu par %d\n", i,status.MPI_SOURCE);
             MPI_Send(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD);
+            int temp_score;
+            MPI_Recv(&temp_score, 1, MPI_INT, i, TAG_SCORE, MPI_COMM_WORLD, &status);
+            printf("ROOTreçoit le score de %d\n", i);
+            if(temp_score < result->score){
+              MPI_Send(&temp_score, 1, MPI_INT, i, TAG_CUT, MPI_COMM_WORLD);
+              job_sent--;
+            }
           }
         }
       }
@@ -217,7 +225,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       printf("#ROOT envoi job à %d\n", status.MPI_SOURCE);
       // on stocke le move pour l'indice
       indice[status.MPI_SOURCE] = compt_sent;
-      check[status.MPI_SOURCE] = 1;
       compt_sent++;
       job_sent++; 
     }
@@ -385,7 +392,7 @@ int main(int argc, char **argv)
       play_move(&root_proc, move, &child);
       //printf("#%d rentre récursivement\n", rang);
       child.height = 1;
-      evaluate(&child, &child_result, status, rang);
+      evaluate(&child, &child_result, status, rang, &child_result.score);
       int child_score = -child_result.score;
       /* dès qu'on est arrivé là on a fini le job */
       /* on envoie le result */
