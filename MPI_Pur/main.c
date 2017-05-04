@@ -19,7 +19,7 @@ double my_gettimeofday(){
 
 void evaluate(tree_t * T, result_t *result, MPI_Status status)
 {
-  printf("début évaluate\n");
+
 
   node_searched++;
   
@@ -32,8 +32,8 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
   if (test_draw_or_victory(T, result))
     return;
 
-        if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
-  return;
+  if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
+    return;
 
   compute_attack_squares(T);
 
@@ -50,7 +50,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     result->score = check(T) ? -MAX_SCORE : CERTAIN_DRAW;
     return;
   }
-
+  printf("début évaluate\n");
   if (ALPHA_BETA_PRUNING)
     sort_moves(T, n_moves, moves);
 
