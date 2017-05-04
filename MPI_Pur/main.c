@@ -34,7 +34,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
 
   if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
     return;
-    printf("début évaluate\n");
+    
   compute_attack_squares(T);
 
         /* profondeur max atteinte ? si oui, évaluation heuristique */
@@ -42,7 +42,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     result->score = (2 * T->side - 1) * heuristic_evaluation(T);
     return;
   }
-
+  printf("début évaluate\n");
   n_moves = generate_legal_moves(T, &moves[0]);
 
         /* absence de coups légaux : pat ou mat */
