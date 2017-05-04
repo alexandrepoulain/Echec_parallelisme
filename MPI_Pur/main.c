@@ -34,7 +34,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
 
   if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
     return;
-
+    printf("début évaluate\n");
   compute_attack_squares(T);
 
         /* profondeur max atteinte ? si oui, évaluation heuristique */
@@ -50,7 +50,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     result->score = check(T) ? -MAX_SCORE : CERTAIN_DRAW;
     return;
   }
-  printf("début évaluate\n");
+  
   if (ALPHA_BETA_PRUNING)
     sort_moves(T, n_moves, moves);
 
