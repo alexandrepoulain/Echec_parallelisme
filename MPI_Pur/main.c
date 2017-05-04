@@ -34,15 +34,15 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
 
   if (TRANSPOSITION_TABLE && tt_lookup(T, result))     /* la réponse est-elle déjà connue ? */
     return;
-    
+
   compute_attack_squares(T);
-  printf("début évaluate\n");
+  printf("T depth = %d\n", T->depth); 
         /* profondeur max atteinte ? si oui, évaluation heuristique */
   if (T->depth == 0) {
     result->score = (2 * T->side - 1) * heuristic_evaluation(T);
     return;
   }
-  
+
   n_moves = generate_legal_moves(T, &moves[0]);
 
         /* absence de coups légaux : pat ou mat */
@@ -50,7 +50,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     result->score = check(T) ? -MAX_SCORE : CERTAIN_DRAW;
     return;
   }
-  
+
   if (ALPHA_BETA_PRUNING)
     sort_moves(T, n_moves, moves);
 
