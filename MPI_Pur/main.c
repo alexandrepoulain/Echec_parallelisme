@@ -57,11 +57,14 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
   int flag = 0;
   for (int i = 0; i < n_moves; i++){
     if(T->height == 1){
-      printf("receive an alpha\n");
+     printf("n_moves = %d\n", n_moves); 
+     printf("i = %d\n", i); 
+
      MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
+     printf("flag = %d\n", flag); 
       // Si on reçoit un message
       if(flag == 1){
-        
+        printf("receive an alpha\n");
         // on met à jour le alpha courant
         MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       }
