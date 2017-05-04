@@ -17,9 +17,8 @@ double my_gettimeofday(){
   return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
 }
 
-void evaluate(tree_t * T, result_t *result)
+void evaluate(tree_t * T, result_t *result, MPI_Status status)
 {
-  MPI_Status status;
 
   node_searched++;
   
@@ -70,7 +69,7 @@ void evaluate(tree_t * T, result_t *result)
 
     play_move(T, moves[i], &child);
 
-    evaluate(&child, &child_result);
+    evaluate(&child, &child_result, status);
 
     int child_score = -child_result.score;
 
@@ -368,7 +367,7 @@ int main(int argc, char **argv)
       play_move(&root_proc, move, &child);
 
       //printf("#%d rentre récursivement\n", rang);
-      evaluate(&child, &child_result);
+      evaluate(&child, &child_result, status);
       int child_score = -child_result.score;
       /* dès qu'on est arrivé là on a fini le job */
       /* on envoie le result */
