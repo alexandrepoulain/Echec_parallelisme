@@ -90,7 +90,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
      //printf("flag = %d\n", flag); 
       // Si on reçoit un message
       if(flag == 1){
-        //printf("receive an alpha\n");
+        printf("#%d receive an new alpha\n", rang);
         // on met à jour le alpha courant
         MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       }
