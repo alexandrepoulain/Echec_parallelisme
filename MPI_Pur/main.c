@@ -57,7 +57,7 @@ void evaluate(tree_t * T, result_t *result)
   /* évalue récursivement les positions accessibles à partir d'ici */
   int flag = 0;
   for (int i = 0; i < n_moves; i++) {
-   // MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
+   MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
     // Si on reçoit un message
     if(flag == 1){
       printf("receive an alpha\n");
