@@ -148,7 +148,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   int job_sent = 0;
   int compt_sent = 0;
   int indice[NP];
-  int* check=calloc(NP, sizeof(int));
+  int check[NP];
+  for(int i=1;i<NP;i++)
+    check[i]=1;
+
   for(int i =0; i <n_moves; i++){
     printf("#ROOT move[%d] = %d \n", i, moves[i]);
   }
