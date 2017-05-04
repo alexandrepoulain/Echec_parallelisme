@@ -7,7 +7,10 @@
               - Une fois fini un esclave envoie son résultat et attend (il devrait aider)
 */
 #define TAG_END 5
+#define TAG_MOVES 4
+#define TAG_TREE 3
 #define TAG_ALPHA 8
+#define TAG_RESULT 2
 
 unsigned long long int node_searched = 0;
 
@@ -58,8 +61,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
   for (int i = 0; i < n_moves; i++){
     if(T->height == 1){
      printf("n_moves = %d\n", n_moves); 
-     printf("i = %d\n", i); 
-
+     printf("i = %d\n", i);
      MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
      printf("flag = %d\n", flag); 
       // Si on reçoit un message
@@ -151,13 +153,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     if( i >= NP)
       break;
     // Send au processus i du tableau T 
-    MPI_Send(T, 1, mpi_tree_t, i, tag, MPI_COMM_WORLD);
+    MPI_Send(T, 1, mpi_tree_t, i, TAG_TREE, MPI_COMM_WORLD);
     //printf("#ROOT envoi à #%d\n", i);
     // stocker l'indice
     indice[i] = i;
     // Send au processus i du move
     //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-    MPI_Send(&moves[i-1], 1, MPI_INT, i, tag, MPI_COMM_WORLD);
+    MPI_Send(&moves[i-1], 1, MPI_INT, i, TAG_MOVES, MPI_COMM_WORLD);
     //printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
     job_sent++;
   }
@@ -168,7 +170,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     //  On stocke la reception dans child_result
     //  On compare avec la valeur déjà présente
     result_t child_result;
-    MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
+    MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
     job_sent--;
     int child_score = -child_result.score;
     if (child_score > result->score){
@@ -201,9 +203,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     if(compt_sent < n_moves){
       // Send un job au processus qui vient d'envoyer son résultat 
       // On renvoie T 
-      MPI_Send(T, 1, mpi_tree_t, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
+      MPI_Send(T, 1, mpi_tree_t, status.MPI_SOURCE, TAG_TREE, MPI_COMM_WORLD);
       // on envoie un nouveau move 
-      MPI_Send(&moves[compt_sent], 1, MPI_INT, status.MPI_SOURCE, tag, MPI_COMM_WORLD);
+      MPI_Send(&moves[compt_sent], 1, MPI_INT, status.MPI_SOURCE, TAG_MOVES, MPI_COMM_WORLD);
       // on stocke le move pour l'indice
       indice[status.MPI_SOURCE] = compt_sent;
       compt_sent++;
@@ -352,7 +354,7 @@ int main(int argc, char **argv)
       tree_t root_proc; 
       move_t move;
       //printf("#%d En attente\n", rang);
-      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
       tag = status.MPI_TAG;
       //printf("#%d tag = %d\n", rang, tag);
       if(tag == TAG_END){
@@ -360,7 +362,7 @@ int main(int argc, char **argv)
         break;
       }
       /* receive le move */
-      MPI_Recv(&move, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &status);
+      MPI_Recv(&move, 1, MPI_INT, 0, TAG_MOVES, MPI_COMM_WORLD, &status);
       //printf("#%d reçu job\n", rang);
       //print_position(&root_proc);
       /* Do le premier job */
@@ -377,7 +379,7 @@ int main(int argc, char **argv)
       int child_score = -child_result.score;
       /* dès qu'on est arrivé là on a fini le job */
       /* on envoie le result */
-      MPI_Send(&child_result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
+      MPI_Send(&child_result, 1, mpi_result_t, 0, TAG_RESULT, MPI_COMM_WORLD);
       //printf("#%d fini envoi\n", rang);
     }
     MPI_Finalize();
