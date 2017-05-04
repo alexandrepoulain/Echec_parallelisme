@@ -147,6 +147,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   int job_sent = 0;
   int compt_sent = 0;
   int indice[NP];
+  int check[NP];
   for(int i =0; i <n_moves; i++){
     printf("#ROOT move[%d] = %d \n", i, moves[i]);
   }
@@ -174,6 +175,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     //  On compare avec la valeur déjà présente
     result_t child_result;
     MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
+    check[status.MPI_SOURCE] = 0;
     printf("#ROOT reçu de %d \n", status.MPI_SOURCE);
     job_sent--;
     int child_score = -child_result.score;
@@ -192,7 +194,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       // Communication aux autres processus de l'alpha
       if(T->depth > 1){
         for(int i=1; i<NP; i++){
-          if(i != status.MPI_SOURCE){
+          if(i != status.MPI_SOURCE && check[i] == 1){
             printf("ROOT envoie à %d le alpha reçu par %d\n", i,status.MPI_SOURCE);
             MPI_Send(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD);
           }
@@ -210,6 +212,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       printf("#ROOT envoi job à %d\n", status.MPI_SOURCE);
       // on stocke le move pour l'indice
       indice[status.MPI_SOURCE] = compt_sent;
+      check[status.MPI_SOURCE] = 1;
       compt_sent++;
       job_sent++; 
     }
