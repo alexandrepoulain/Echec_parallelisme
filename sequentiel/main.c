@@ -3,7 +3,11 @@
 /* 2017-02-23 : version 1.0 */
 
 unsigned long long int node_searched = 0;
-
+double my_gettimeofday(){
+  struct timeval tmp_time;
+  gettimeofday(&tmp_time, NULL);
+  return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
+}
 void evaluate(tree_t * T, result_t *result)
 {
         node_searched++;
@@ -109,9 +113,12 @@ int main(int argc, char **argv)
         
         parse_FEN(argv[1], &root);
         print_position(&root);
-        
+         double debut = my_gettimeofday();
 	decide(&root, &result);
-
+ double fin = my_gettimeofday();  
+    fprintf( stderr, "Temps total de calcul : %g sec\n", 
+     fin - debut);
+    fprintf( stdout, "%g\n", fin - debut);
 	printf("\nDécision de la position: ");
         switch(result.score * (2*root.side - 1)) {
         case MAX_SCORE: printf("blanc gagne\n"); break;
