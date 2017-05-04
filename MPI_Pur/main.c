@@ -366,7 +366,7 @@ int main(int argc, char **argv)
       */
       //printf("#%d move = %d\n",rang,  move);
       play_move(&root_proc, move, &child);
-
+      printf("child depth = %d \n", child.depth);
       //printf("#%d rentre récursivement\n", rang);
       evaluate(&child, &child_result, status);
       int child_score = -child_result.score;
