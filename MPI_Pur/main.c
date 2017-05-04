@@ -185,7 +185,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     }
     else{
     // Send au processus i du tableau T 
-      MPI_Send(T, 1, mpi_tree_t, i, TAG_TREE, MPI_COMM_WORLD);
+      MPI_Send(T, 1, mpi_tree_t, i-1, TAG_TREE, MPI_COMM_WORLD);
       //printf("#ROOT envoi à #%d\n", i);
       // stocker l'indice
       indice[i] = i;
