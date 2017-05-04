@@ -36,7 +36,6 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     return;
 
   compute_attack_squares(T);
-  printf("T height = %d\n", T->depth); 
         /* profondeur max atteinte ? si oui, évaluation heuristique */
   if (T->depth == 0) {
     result->score = (2 * T->side - 1) * heuristic_evaluation(T);
@@ -55,15 +54,16 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     sort_moves(T, n_moves, moves);
 
   /* évalue récursivement les positions accessibles à partir d'ici */
-  printf("%d\n", T->depth);
   int flag = 0;
   for (int i = 0; i < n_moves; i++){
-   MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
-    // Si on reçoit un message
-    if(flag == 1){
-      printf("receive an alpha\n");
-      // on met à jour le alpha courant
-      MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+    if(T->height == 1){
+     MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
+      // Si on reçoit un message
+      if(flag == 1){
+        printf("receive an alpha\n");
+        // on met à jour le alpha courant
+        MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+      }
     }
     tree_t child;
     result_t child_result;
@@ -365,8 +365,10 @@ int main(int argc, char **argv)
       /* On play le move attribué et on rentre dans la fonction evaluate
       */
       //printf("#%d move = %d\n",rang,  move);
+
       play_move(&root_proc, move, &child);
       //printf("#%d rentre récursivement\n", rang);
+      child.height = 1;
       evaluate(&child, &child_result, status);
       int child_score = -child_result.score;
       /* dès qu'on est arrivé là on a fini le job */
