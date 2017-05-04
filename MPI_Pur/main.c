@@ -163,6 +163,13 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     // Send au processus i du move
     //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
     MPI_Send(&moves[i-1], 1, MPI_INT, i, TAG_MOVES, MPI_COMM_WORLD);
+    // on attend le premier
+    if(i==1){
+      result_t child_result;
+      MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
+      printf("#ROOT reçu de %d \n", status.MPI_SOURCE);
+      i--;
+    }
     printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
     job_sent++;
   }
