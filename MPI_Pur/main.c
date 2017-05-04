@@ -56,7 +56,7 @@ void evaluate(tree_t * T, result_t *result)
 
   /* évalue récursivement les positions accessibles à partir d'ici */
   int flag = 0;
-  for (int i = 0; i < n_moves; i++) {
+  for (int i = 0; i < n_moves; i++){
    MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
     // Si on reçoit un message
     if(flag == 1){
@@ -365,6 +365,7 @@ int main(int argc, char **argv)
       */
       //printf("#%d move = %d\n",rang,  move);
       play_move(&root_proc, move, &child);
+      printf("%d \n",child.height);
       //printf("#%d rentre récursivement\n", rang);
       evaluate(&child, &child_result);
       int child_score = -child_result.score;
