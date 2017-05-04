@@ -60,6 +60,7 @@ void evaluate(tree_t * T, result_t *result)
     MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
     // Si on reçoit un message
     if(flag == 1){
+      printf("receive an alpha")
       // on met à jour le alpha courant
       MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
     }
@@ -360,7 +361,6 @@ int main(int argc, char **argv)
       //printf("#%d rentre récursivement\n", rang);
       evaluate(&child, &child_result);
       int child_score = -child_result.score;
-      root_proc.alpha = MAX(root_proc.alpha, child_score);
       /* dès qu'on est arrivé là on a fini le job */
       /* on envoie le result */
       MPI_Send(&child_result, 1, mpi_result_t, 0, tag, MPI_COMM_WORLD);
