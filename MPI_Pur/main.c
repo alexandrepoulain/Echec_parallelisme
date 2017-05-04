@@ -181,8 +181,10 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       T->alpha = child_score;
       // Communication aux autres processus de l'alpha
       for(int i=1; i<NP; i++){
-        printf("ROOT envoie à %d le alpha reçu par %d\n", i,status.MPI_SOURCE);
-        MPI_Isend(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD, &req);
+        if(i != status.MPI_SOURCE){
+          printf("ROOT envoie à %d le alpha reçu par %d\n", i,status.MPI_SOURCE);
+          MPI_Isend(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD, &req);
+        }
       }
     }
 
