@@ -15,4 +15,4 @@ decide: main.o aux.o
 clean:
 	rm -f *.o decide
 run:
-	mpirun -n 4 -hostfile hostfile --map-by node ./decide "/ppp//PPP//7k//7K w"   
+	mpirun -n 4 -hostfile hostfile --map-by node ./decide "/5p/4p/4PP/4K///k w" 
