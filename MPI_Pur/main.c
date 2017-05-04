@@ -118,9 +118,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
   if (test_draw_or_victory(T, result))
     return;
 
-        if (TRANSPOSITION_TABLE && tt_lookup(T, result))     
-        // la réponse est-elle déjà connue ? 
-  return;
+  if (TRANSPOSITION_TABLE && tt_lookup(T, result))     
+  // la réponse est-elle déjà connue ? 
+    return;
 
   compute_attack_squares(T);
 
@@ -186,6 +186,8 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         result->PV[j+1] = child_result.PV[j];
       result->PV[0] = moves[indice[status.MPI_SOURCE]];
     }
+    if (DEFINITIVE(result->score))
+      break;
     /* on s'occupe ici de l'alpha */
     if(T->alpha < child_score){
       T->alpha = child_score;
