@@ -169,6 +169,18 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     
       result_t child_result;
       MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
+      int child_score = -child_result.score;
+    if (child_score > result->score){
+      result->score = child_score;
+      // on recupere le move correspondant en utilisant le tableau indice
+      result->best_move = moves[indice[status.MPI_SOURCE]];
+      result->pv_length = child_result.pv_length + 1;
+      for(int j = 0; j < child_result.pv_length; j++)
+        result->PV[j+1] = child_result.PV[j];
+      result->PV[0] = moves[indice[status.MPI_SOURCE]];
+    }
+    if (DEFINITIVE(result->score))
+      break;
       printf("#ROOT reçu de %d \n", status.MPI_SOURCE);
     }
     else{
