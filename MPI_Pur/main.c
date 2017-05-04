@@ -20,7 +20,7 @@ double my_gettimeofday(){
   return tmp_time.tv_sec + (tmp_time.tv_usec * 1.0e-6L);
 }
 
-void evaluate(tree_t * T, result_t *result, MPI_Status status)
+void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
 {
 
 
@@ -76,7 +76,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
 
     play_move(T, moves[i], &child);
 
-    evaluate(&child, &child_result, status);
+    evaluate(&child, &child_result, status, rang);
 
     int child_score = -child_result.score;
 
@@ -91,7 +91,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
 
   if (ALPHA_BETA_PRUNING && child_score >= T->beta){
     if(T->height == 1)
-      printf("coupe du calcul\n");
+      printf("#%d coupe du calcul\n", rang);
     break;    
   }
 
@@ -174,6 +174,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     //  On compare avec la valeur déjà présente
     result_t child_result;
     MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
+    printf("#ROOT reçu de %d \n", status.MPI_SOURCE);
     job_sent--;
     int child_score = -child_result.score;
     if (child_score > result->score){
@@ -198,9 +199,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         }
       }
     }
-
-
-    T->alpha = MAX(T->alpha, child_score);
     // Si il reste du job à faire on en envoie au processus
     //    sinon on fait rien 
     if(compt_sent < n_moves){
@@ -378,12 +376,12 @@ int main(int argc, char **argv)
       play_move(&root_proc, move, &child);
       //printf("#%d rentre récursivement\n", rang);
       child.height = 1;
-      evaluate(&child, &child_result, status);
+      evaluate(&child, &child_result, status, rang);
       int child_score = -child_result.score;
       /* dès qu'on est arrivé là on a fini le job */
       /* on envoie le result */
       MPI_Send(&child_result, 1, mpi_result_t, 0, TAG_RESULT, MPI_COMM_WORLD);
-      //printf("#%d fini envoi\n", rang);
+      printf("#%d envoi result\n", rang);
     }
     MPI_Finalize();
   }
