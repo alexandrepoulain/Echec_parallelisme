@@ -96,6 +96,8 @@ if (TRANSPOSITION_TABLE)
 void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
 
+  MPI_Request req;
+
   node_searched++;
   
   move_t moves[MAX_MOVES];
@@ -179,7 +181,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       T->alpha = child_score;
       // Communication aux autres processus de l'alpha
       for(int i=1; i<NP; i++)
-        MPI_Send(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD);
+        MPI_Isend(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD, &req);
     }
 
 
@@ -198,6 +200,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       job_sent++; 
     }
   }
+  MPI_Request_free(&req);
 }
 
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
