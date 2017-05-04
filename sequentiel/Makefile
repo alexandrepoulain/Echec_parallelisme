@@ -11,6 +11,9 @@ decide: main.o aux.o
 
 .PHONY: clean
 
+run: 
+	./decide "/5p/4p/4PP/4K///k w" 
+
 clean:
-	rm -f *.o decide
+	rm -f *.o decide 
 
