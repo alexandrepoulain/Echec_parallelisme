@@ -70,10 +70,12 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang, int* ad
       // on met à jour le alpha courant
       int temp_alpha;
       
-        MPI_Recv(&temp_alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+      MPI_Recv(&temp_alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+      printf("#%d received new alpha \n", rang);
       if(T->height == 1){
         T->alpha = temp_alpha;
       }
+      printf("#%d try to send adresse to root \n", rang);
       MPI_Send(adress_score, 1, MPI_INT, 0, TAG_SCORE, MPI_COMM_WORLD);
     }
     // si le maître nous coupe
