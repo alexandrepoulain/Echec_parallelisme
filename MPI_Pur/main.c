@@ -19,6 +19,7 @@ double my_gettimeofday(){
 
 void evaluate(tree_t * T, result_t *result, MPI_Status status)
 {
+  printf("début évaluate\n");
 
   node_searched++;
   
