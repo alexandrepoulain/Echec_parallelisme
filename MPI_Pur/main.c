@@ -68,8 +68,11 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang, int* ad
     if(flag == 1 && status.MPI_TAG == TAG_ALPHA){
       //printf("receive an alpha\n");
       // on met à jour le alpha courant
+      int temp_alpha;
+      
+        MPI_Recv(&temp_alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       if(T->height == 1){
-        MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+        T->alpha = temp_alpha;
       }
       MPI_Send(adress_score, 1, MPI_INT, 0, TAG_SCORE, MPI_COMM_WORLD);
     }
