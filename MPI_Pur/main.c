@@ -163,7 +163,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     // Send au processus i du move
     //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
     MPI_Send(&moves[i-1], 1, MPI_INT, i, TAG_MOVES, MPI_COMM_WORLD);
-    //printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
+    printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
     job_sent++;
   }
   // variable qui va nous permettre de savoir quand arrêter d'envoyer des jobs 
@@ -207,6 +207,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       MPI_Send(T, 1, mpi_tree_t, status.MPI_SOURCE, TAG_TREE, MPI_COMM_WORLD);
       // on envoie un nouveau move 
       MPI_Send(&moves[compt_sent], 1, MPI_INT, status.MPI_SOURCE, TAG_MOVES, MPI_COMM_WORLD);
+      printf("#ROOT envoi job à %d\n", status.MPI_SOURCE);
       // on stocke le move pour l'indice
       indice[status.MPI_SOURCE] = compt_sent;
       compt_sent++;
