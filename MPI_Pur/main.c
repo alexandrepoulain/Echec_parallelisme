@@ -78,10 +78,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
     result->PV[0] = moves[i];
   }
 
-  if (ALPHA_BETA_PRUNING && child_score >= T->beta){
-    if(T->height == 1)
-      printf("#%d coupe du calcul\n", rang);
-    break;    
+    
   }
   if(T->height == 1){
      //printf("n_moves = %d\n", n_moves); 
@@ -95,6 +92,10 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
         MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       }
     }
+    if (ALPHA_BETA_PRUNING && child_score >= T->beta){
+    if(T->height == 1)
+      printf("#%d coupe du calcul\n", rang);
+    break;  
 
   T->alpha = MAX(T->alpha, child_score);
 }
