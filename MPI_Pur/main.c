@@ -153,7 +153,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
 
   for (int i = 1; i < n_moves ; i++) {
     // SALE si on est arrivé au max du nombre de processus on arrête 
-    if( i >= NP)
+    if( i >= NP+1)
       break;
     if(i==1){
       // Send au processus i du tableau T 
