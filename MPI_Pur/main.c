@@ -62,27 +62,28 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang, int* ad
     
    //printf("n_moves = %d\n", n_moves); 
    //printf("i = %d\n", i);
-   MPI_Iprobe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-   //printf("flag = %d\n", flag); 
-    // Si on reçoit un message
-    if(flag == 1 && status.MPI_TAG == TAG_ALPHA){
-      //printf("receive an alpha\n");
-      // on met à jour le alpha courant
-      int temp_alpha;
-      
-      MPI_Recv(&temp_alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
-      printf("#%d received new alpha \n", rang);
-      if(T->height == 1){
-        T->alpha = temp_alpha;
+    if(T->height == 1){
+     MPI_Iprobe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+     //printf("flag = %d\n", flag); 
+      // Si on reçoit un message
+      if(flag == 1 && status.MPI_TAG == TAG_ALPHA){
+        //printf("receive an alpha\n");
+        // on met à jour le alpha courant
+        int temp_alpha;
+        MPI_Recv(&temp_alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+        printf("#%d received new alpha \n", rang);
+        if(T->height == 1){
+          T->alpha = temp_alpha;
+        }
+        printf("#%d try to send adresse to root \n", rang);
+        MPI_Send(adress_score, 1, MPI_INT, 0, TAG_SCORE, MPI_COMM_WORLD);
       }
-      printf("#%d try to send adresse to root \n", rang);
-      MPI_Send(adress_score, 1, MPI_INT, 0, TAG_SCORE, MPI_COMM_WORLD);
-    }
-    // si le maître nous coupe
-    if(flag==1 && status.MPI_TAG == TAG_CUT){
-      int temp;
-      MPI_Recv(&temp, 1, MPI_INT, 0, TAG_CUT, MPI_COMM_WORLD, &status);
-      return;
+      // si le maître nous coupe
+      if(flag==1 && status.MPI_TAG == TAG_CUT){
+        int temp;
+        MPI_Recv(&temp, 1, MPI_INT, 0, TAG_CUT, MPI_COMM_WORLD, &status);
+        return;
+      }
     }
     tree_t child;
     result_t child_result;
