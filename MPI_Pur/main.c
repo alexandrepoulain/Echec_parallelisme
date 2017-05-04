@@ -7,6 +7,7 @@
               - Une fois fini un esclave envoie son résultat et attend (il devrait aider)
 */
 #define TAG_END 5
+#define TAG_ALPHA 8
 
 unsigned long long int node_searched = 0;
 
@@ -18,6 +19,8 @@ double my_gettimeofday(){
 
 void evaluate(tree_t * T, result_t *result)
 {
+  MPI_Status status;
+
   node_searched++;
   
   move_t moves[MAX_MOVES];
@@ -52,8 +55,14 @@ void evaluate(tree_t * T, result_t *result)
     sort_moves(T, n_moves, moves);
 
   /* évalue récursivement les positions accessibles à partir d'ici */
-  
+  int flag = 0;
   for (int i = 0; i < n_moves; i++) {
+    MPI_Iprobe(0 , TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
+    // Si on reçoit un message
+    if(flag == 1){
+      // on met à jour le alpha courant
+      MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+    }
     tree_t child;
     result_t child_result;
 
@@ -164,6 +173,15 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         result->PV[j+1] = child_result.PV[j];
       result->PV[0] = moves[indice[status.MPI_SOURCE]];
     }
+    /* on s'occupe ici de l'alpha */
+    if(T->alpha < child_score){
+      T->alpha = child_score;
+      // Communication aux autres processus de l'alpha
+      for(int i=1; i<NP; i++)
+        MPI_Send(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD);
+    }
+
+
     T->alpha = MAX(T->alpha, child_score);
     // Si il reste du job à faire on en envoie au processus
     //    sinon on fait rien 
