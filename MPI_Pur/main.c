@@ -89,8 +89,11 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     result->PV[0] = moves[i];
   }
 
-  if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+  if (ALPHA_BETA_PRUNING && child_score >= T->beta){
+    if(T->height == 1)
+      printf("coupe du calcul\n");
     break;    
+  }
 
   T->alpha = MAX(T->alpha, child_score);
 }
