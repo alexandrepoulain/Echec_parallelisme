@@ -97,7 +97,6 @@ if (TRANSPOSITION_TABLE)
 void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
 
-  MPI_Request req;
 
   node_searched++;
   
@@ -207,7 +206,6 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
       job_sent++; 
     }
   }
-  MPI_Request_free(&req);
 }
 
 void decide(tree_t * T, result_t *result, int tag, int NP, MPI_Status status, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
