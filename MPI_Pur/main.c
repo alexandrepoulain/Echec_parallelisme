@@ -155,23 +155,35 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     // SALE si on est arrivé au max du nombre de processus on arrête 
     if( i >= NP)
       break;
-    // Send au processus i du tableau T 
-    MPI_Send(T, 1, mpi_tree_t, i, TAG_TREE, MPI_COMM_WORLD);
-    //printf("#ROOT envoi à #%d\n", i);
-    // stocker l'indice
-    indice[i] = i;
-    // Send au processus i du move
-    //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
-    MPI_Send(&moves[i-1], 1, MPI_INT, i, TAG_MOVES, MPI_COMM_WORLD);
-    // on attend le premier
     if(i==1){
+      // Send au processus i du tableau T 
+      MPI_Send(T, 1, mpi_tree_t, i, TAG_TREE, MPI_COMM_WORLD);
+      //printf("#ROOT envoi à #%d\n", i);
+      // stocker l'indice
+      indice[i] = i;
+      // Send au processus i du move
+      //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
+      MPI_Send(&moves[i-1], 1, MPI_INT, i, TAG_MOVES, MPI_COMM_WORLD);
+      // on attend le premier
+      printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
+    
       result_t child_result;
       MPI_Recv(&child_result, 1, mpi_result_t, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
       printf("#ROOT reçu de %d \n", status.MPI_SOURCE);
-      i--;
     }
-    printf("#ROOT fin envoi du move %d à #%d\n",i, i); 
-    job_sent++;
+    else{
+    // Send au processus i du tableau T 
+      MPI_Send(T, 1, mpi_tree_t, i, TAG_TREE, MPI_COMM_WORLD);
+      //printf("#ROOT envoi à #%d\n", i);
+      // stocker l'indice
+      indice[i] = i;
+      // Send au processus i du move
+      //printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
+      MPI_Send(&moves[i-1], 1, MPI_INT, i-1, TAG_MOVES, MPI_COMM_WORLD);
+      // on attend le premier
+      printf("#ROOT fin envoi du move %d à #%d\n",i, i-1); 
+      job_sent++;
+    }
   }
   // variable qui va nous permettre de savoir quand arrêter d'envoyer des jobs 
   compt_sent = job_sent; 
