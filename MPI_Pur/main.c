@@ -36,7 +36,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status)
     return;
 
   compute_attack_squares(T);
-  printf("T depth = %d\n", T->depth); 
+  printf("T height = %d\n", T->depth); 
         /* profondeur max atteinte ? si oui, évaluation heuristique */
   if (T->depth == 0) {
     result->score = (2 * T->side - 1) * heuristic_evaluation(T);
@@ -181,10 +181,12 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     if(T->alpha < child_score){
       T->alpha = child_score;
       // Communication aux autres processus de l'alpha
-      for(int i=1; i<NP; i++){
-        if(i != status.MPI_SOURCE){
-          printf("ROOT envoie à %d le alpha reçu par %d\n", i,status.MPI_SOURCE);
-          MPI_Send(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD);
+      if(T->depth > 1){
+        for(int i=1; i<NP; i++){
+          if(i != status.MPI_SOURCE){
+            printf("ROOT envoie à %d le alpha reçu par %d\n", i,status.MPI_SOURCE);
+            MPI_Send(&T->alpha, 1, MPI_INT, i, TAG_ALPHA, MPI_COMM_WORLD);
+          }
         }
       }
     }
@@ -366,8 +368,6 @@ int main(int argc, char **argv)
       */
       //printf("#%d move = %d\n",rang,  move);
       play_move(&root_proc, move, &child);
-      child.depth = 1;
-      printf("child depth = %d \n", child.depth);
       //printf("#%d rentre récursivement\n", rang);
       evaluate(&child, &child_result, status);
       int child_score = -child_result.score;
