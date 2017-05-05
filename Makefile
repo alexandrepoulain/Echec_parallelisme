@@ -10,6 +10,8 @@ target:
 	make -C ./AB_sequentiel
 	make -C ./AB_Open_MP
 	make -C ./AB_Open_MP2
+	make -C ./AB_Open_MP3
+	make -C ./AB_Open_MP4
 	
 exec:
 	cd Open_MP/ && make exec
@@ -23,6 +25,8 @@ exec:
 	cd AB_sequentiel/ && make exec
 	cd AB_Open_MP/ && make exec
 	cd AB_Open_MP2/ && make exec
+	cd AB_Open_MP3/ && make exec
+	cd AB_Open_MP4/ && make exec
 
 clean:
 	cd Open_MP/ && make clean
@@ -36,3 +40,5 @@ clean:
 	cd AB_sequentiel/ && make clean
 	cd AB_Open_MP/ && make clean
 	cd AB_Open_MP2/ && make clean
+	cd AB_Open_MP3/ && make clean
+	cd AB_Open_MP4/ && make clean
