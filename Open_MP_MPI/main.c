@@ -139,11 +139,13 @@ void evaluate(chained_t* root_chain)
   }
   //if(test == 1)
     //printf("je n'attend plus dans dans evaluate !!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+  for(int i = 0; i<root_chain->n_moves; i++)
+    free(root_chain->chain[i]);
   free(root_chain->chain);
   free(root_chain->moves);
   
   ////printf("Je détruit\n");
-  free_chain(root_chain);
+  //free_chain(root_chain);
 }
 
 // Cette fonction va parcourir l'arbre de calcul et retourner le calcul possible (son adresse)
