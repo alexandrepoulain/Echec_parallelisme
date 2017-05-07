@@ -66,7 +66,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
      //printf("flag = %d\n", flag); 
       // Si on reçoit un message
       if(flag == 1){
-        //printf("receive an alpha\n");
+        printf("#%d receive an alpha from root\n", rang);
         // on met à jour le alpha courant
         MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       }
@@ -230,8 +230,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         result->PV[j+1] = child_result.PV[j];
       result->PV[0] = moves[indice[status.MPI_SOURCE]];
     }
-    if (DEFINITIVE(result->score))
-      break;
+    
     /* on s'occupe ici de l'alpha */
     if(T->alpha < child_score){
       T->alpha = child_score;
