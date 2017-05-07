@@ -340,9 +340,6 @@ int main(int argc, char **argv)
   MPI_Type_create_struct(nitems2, blocklengths2, offsets2, types2, &mpi_result_t);
   MPI_Type_commit(&mpi_result_t);
 
-  
-
-
   /* Si je suis le processus 0 je rentre dans la fonction decide */
   if(rang == 0){
     int i; 
@@ -402,13 +399,16 @@ int main(int argc, char **argv)
       tree_t root_proc; 
       move_t move;
       //printf("#%d En attente\n", rang);
-      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
-      tag = status.MPI_TAG;
-      //printf("#%d tag = %d\n", rang, tag);
-      if(tag == TAG_END){
-        //printf("#%d finalize\n", rang);
-        break;
+      MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
+      if(flag==1){
+        if(status.MPI_TAG == TAG_ALPHA){
+          MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+        }
+        if(status.MPI_TAG == TAG_END){
+          break;
+        }
       }
+      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
       /* receive le move */
       MPI_Recv(&move, 1, MPI_INT, 0, TAG_MOVES, MPI_COMM_WORLD, &status);
       //printf("#%d reçu job\n", rang);
