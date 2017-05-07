@@ -405,28 +405,32 @@ int main(int argc, char **argv)
         printf("#%d reçoit le signal de fin\n", rang);
         break;
       }
-    
-      MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
-      /* receive le move */
-      MPI_Recv(&move, 1, MPI_INT, 0, TAG_MOVES, MPI_COMM_WORLD, &status);
-      //printf("#%d reçu job\n", rang);
-      //print_position(&root_proc);
-      /* Do le premier job */
-      tree_t child;
-      result_t child_result;
-      /* On play le move attribué et on rentre dans la fonction evaluate
-      */
-      //printf("#%d move = %d\n",rang,  move);
+      if(status.MPI_TAG == TAG_ALPHA){
+        MPI_Recv(&root_proc.alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+      }
+      if(status.MPI_TAG == TAG_TREE){
+        MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
+        /* receive le move */
+        MPI_Recv(&move, 1, MPI_INT, 0, TAG_MOVES, MPI_COMM_WORLD, &status);
+        //printf("#%d reçu job\n", rang);
+        //print_position(&root_proc);
+        /* Do le premier job */
+        tree_t child;
+        result_t child_result;
+        /* On play le move attribué et on rentre dans la fonction evaluate
+        */
+        //printf("#%d move = %d\n",rang,  move);
 
-      play_move(&root_proc, move, &child);
-      //printf("#%d rentre récursivement\n", rang);
-      child.height = 1;
-      evaluate(&child, &child_result, status, rang);
-      int child_score = -child_result.score;
-      /* dès qu'on est arrivé là on a fini le job */
-      /* on envoie le result */
-      MPI_Send(&child_result, 1, mpi_result_t, 0, TAG_RESULT, MPI_COMM_WORLD);
-      printf("#%d envoi result\n", rang);
+        play_move(&root_proc, move, &child);
+        //printf("#%d rentre récursivement\n", rang);
+        child.height = 1;
+        evaluate(&child, &child_result, status, rang);
+        int child_score = -child_result.score;
+        /* dès qu'on est arrivé là on a fini le job */
+        /* on envoie le result */
+        MPI_Send(&child_result, 1, mpi_result_t, 0, TAG_RESULT, MPI_COMM_WORLD);
+        printf("#%d envoi result\n", rang);
+      }
     }
     printf("#%d finalize\n", rang);
     MPI_Finalize();
