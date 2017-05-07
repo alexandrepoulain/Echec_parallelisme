@@ -56,10 +56,10 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
   if (ALPHA_BETA_PRUNING)
     sort_moves(T, n_moves, moves);
 
+if(T->height == 1){
   /* évalue récursivement les positions accessibles à partir d'ici */
   int flag = 0;
   for (int i = 0; i < n_moves; i++){
-    if(T->height == 1){
      //printf("n_moves = %d\n", n_moves); 
      //printf("i = %d\n", i);
      MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
@@ -70,7 +70,6 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
         // on met à jour le alpha courant
         MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       }
-    }
     tree_t child;
     result_t child_result;
 
@@ -87,15 +86,86 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
      for(int j = 0; j < child_result.pv_length; j++)
       result->PV[j+1] = child_result.PV[j];
     result->PV[0] = moves[i];
-  }
+    }
 
-  if (ALPHA_BETA_PRUNING && child_score >= T->beta){
-    if(T->height == 1)
+    if (ALPHA_BETA_PRUNING && child_score >= T->beta){
       printf("#%d coupe du calcul\n", rang);
-    break;    
-  }
+      break;    
+    }
 
-  T->alpha = MAX(T->alpha, child_score);
+    T->alpha = MAX(T->alpha, child_score);
+  }
+}else{
+
+	if(T->height < 3 && T->depth > 10){	
+
+		int i = 0;
+		int continu = 0;
+		#pragma omp parallel
+		{
+		    #pragma omp single nowait
+		    {
+			while(i<n_moves && continu == 0)
+			{
+			    #pragma omp task firstprivate(i)
+			    {
+				tree_t child;
+		      		result_t child_result;
+
+				play_move(T, moves[i], &child);
+
+				evaluate(&child, &child_result);
+
+				int child_score = -child_result.score;
+
+				if (child_score > result->score) {
+					result->score = child_score;
+					result->best_move = moves[i];
+					result->pv_length = child_result.pv_length + 1;
+					for(int j = 0; j < child_result.pv_length; j++)
+						result->PV[j+1] = child_result.PV[j];
+					result->PV[0] = moves[i];
+				}
+				if (ALPHA_BETA_PRUNING && child_score >= T->beta) {
+				#pragma omp critical
+				    continu = 1;
+				}
+				T->alpha = MAX(T->alpha, child_score);
+			    }
+			    i++;
+			}
+		    }
+		}  
+  
+	}
+	else{
+	  for (int i = 0; i < n_moves; i++) {
+
+	      tree_t child;
+	      result_t child_result;
+
+	      play_move(T, moves[i], &child);
+
+	      evaluate(&child, &child_result);
+
+	      int child_score = -child_result.score;
+
+	      if (child_score > result->score) {
+	       result->score = child_score;
+	       result->best_move = moves[i];
+	       result->pv_length = child_result.pv_length + 1;
+	       for(int j = 0; j < child_result.pv_length; j++)
+		result->PV[j+1] = child_result.PV[j];
+	      result->PV[0] = moves[i];
+	    }
+
+	    if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+	      break;    
+
+	    T->alpha = MAX(T->alpha, child_score);
+	  }
+	}
+
 }
 
 if (TRANSPOSITION_TABLE)
