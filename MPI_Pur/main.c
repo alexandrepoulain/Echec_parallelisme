@@ -400,14 +400,10 @@ int main(int argc, char **argv)
       move_t move;
       int flag;
       //printf("#%d En attente\n", rang);
-      MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
+      MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       if(flag==1){
-        if(status.MPI_TAG == TAG_ALPHA){
-          MPI_Recv(&root_proc.alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
-        }
-        if(status.MPI_TAG == TAG_END){
+        if(status.MPI_TAG == TAG_END)
           break;
-        }
       }
       MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
       /* receive le move */
