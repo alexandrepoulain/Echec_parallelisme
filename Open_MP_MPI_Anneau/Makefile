@@ -14,8 +14,5 @@ decide: main.o aux.o
 
 clean:
 	rm -f *.o decide
-exec:
-	export OMP_NUM_THREADS=2
-	export OMP_SCHEDULE="dynamic"
-	export OMP_NESTED=FALSE
-	mpirun -n 2 -hostfile hostfile --map-by node ./decide "5k//2K1P b"
+run:
+	mpirun -n 4 -hostfile hostfile --map-by node ./decide "/ppp//PPP//7k//7K w"   

@@ -13,7 +13,7 @@ target:
 	make -C ./AB_Open_MP3
 	make -C ./AB_Open_MP4
 	make -C ./AB_MPI_Pur
-	make -C ./AB_MPI_Open_MP
+	make -C ./Open_MP_MPI_Anneau
 	
 exec:
 	cd Open_MP/ && make exec
@@ -30,7 +30,7 @@ exec:
 	cd AB_Open_MP3/ && make exec
 	cd AB_Open_MP4/ && make exec
 	cd AB_MPI_Pur/ && make exec
-	cd AB_MPI_Open_MP/ && make exec
+	cd Open_MP_MPI_Anneau/ && make exec
 	
 host:
 	cp hostfile Open_MP_MPI/hostfile
@@ -39,7 +39,7 @@ host:
 	cp hostfile MPI2_Open_MP/hostfile
 	cp hostfile Open_MP_TASK_MPI/hostfile
 	cp hostfile AB_MPI_Pur/hostfile
-	cp hostfile AB_MPI_Open_MP/hostfile
+	cp hostfile Open_MP_MPI_Anneau/hostfile
 
 clean:
 	cd Open_MP/ && make clean
@@ -56,4 +56,4 @@ clean:
 	cd AB_Open_MP3/ && make clean
 	cd AB_Open_MP4/ && make clean
 	cd AB_MPI_Pur/ && make clean
-	cd AB_MPI_Open_MP/ && make clean
+	cd Open_MP_MPI_Anneau/ && make clean

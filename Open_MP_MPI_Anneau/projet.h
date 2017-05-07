@@ -16,7 +16,7 @@
  * Faire passer TRANSPOSITION_TABLE à 1 pour un véritable challenge !
  ********************************************************/
 
-#define ALPHA_BETA_PRUNING  1
+#define ALPHA_BETA_PRUNING  0
 #define TRANSPOSITION_TABLE 0
 
 /*******************************************************
@@ -69,6 +69,18 @@ typedef struct {
   int pv_length;
   int PV[MAX_DEPTH];
 } result_t;
+
+/* Structure pour l'anneau contenant le plateau de jeu ainsi que le tableau de move possible 
+(pour chaque move on a un ponteur vers la structure correspondante)
+C'est une liste chaînée */  
+typedef struct chained {
+  result_t result;
+  tree_t plateau;
+  move_t* moves;
+  int n_moves;
+  struct chained** chain;
+}chained_t;
+
 
 /********************************************
  * Fonctions temps
