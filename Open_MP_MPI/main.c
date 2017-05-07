@@ -183,9 +183,6 @@ chained_t* cherche_calcul(chained_t* node)
   
 }
 
-
-
-
 /* Fonction evaluate root qui sera appeler seulement par le processus root */
 void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, int rang, MPI_Datatype mpi_tree_t, MPI_Datatype mpi_result_t)
 {
@@ -384,7 +381,9 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
             if(nb_regions == 0)
             {
               #pragma omp critical
-              fini = 0;
+              {
+                fini = 0;
+              }
             }
             printf("#ROOT bien reçu et traité %d --- il reste %d régions à venir\n", status.MPI_SOURCE, nb_regions);
           }
@@ -529,18 +528,21 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         if(fini == 0){
           int test = 0;
           for(int g = 0; g < NP; g++){
+            printf("#ROOT rapport de %d = %d", g, test_fin[g]);
             if(test_fin[g] != 1)
               test = 1;
           }
           if(test==0){
             #pragma omp critical
-            temp_fin = 0;
+            {
+              temp_fin = 0;
+            }
             free(test_fin);
           }
             
         }
       }
-      //printf("#ROOT fini = %d\n", temp_fin);
+      printf("#ROOT fini = %d\n", temp_fin);
     }
       
     /* chaques processus a du job à faire */
