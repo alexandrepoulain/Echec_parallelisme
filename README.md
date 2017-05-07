@@ -20,7 +20,7 @@ Le but du projet est de paralléliser un programme séquentiel. Ce programme pre
 
 Utilisation
 ------------
-Chaque repertoire correspond à une implementation.
+Chaque répertoire correspond à une implementation. Le préfixe AB correspond aux implementations utilisant l'algorithme alpha beta
 
     Make
     Make host
