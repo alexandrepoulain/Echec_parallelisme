@@ -69,9 +69,11 @@ void evaluate(tree_t * T, result_t *result)
         result->PV[0] = moves[i];
         }
       }
-
+    /* 
     if (ALPHA_BETA_PRUNING && child_score >= T->beta)
-      break;    
+      critical;   
+    */ 
+    
     #pragma omp critical
     T->alpha = MAX(T->alpha, child_score);
   }
@@ -97,8 +99,8 @@ else{
       result->PV[0] = moves[i];
     }
 
-    //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
-    //  break;    
+    if (ALPHA_BETA_PRUNING && child_score >= T->beta)
+     break;    
 
     T->alpha = MAX(T->alpha, child_score);
   }
