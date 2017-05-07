@@ -47,7 +47,7 @@ void evaluate(tree_t * T, result_t *result)
 
   /* évalue récursivement les positions accessibles à partir d'ici */
   if(T->height == 0){
-    #pragma omp parallel for schedule(runtime)
+    #pragma omp parallel for schedule(runtime) shared(T, result)
     for (int i = 0; i < n_moves; i++) {
 
       tree_t child;
@@ -75,7 +75,9 @@ void evaluate(tree_t * T, result_t *result)
     */ 
     
     #pragma omp critical
-    T->alpha = MAX(T->alpha, child_score);
+    {
+      T->alpha = MAX(T->alpha, child_score);
+    }
   }
 }
 else{
