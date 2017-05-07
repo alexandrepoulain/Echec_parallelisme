@@ -528,7 +528,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
         if(fini == 0){
           int test = 0;
           for(int g = 0; g < NP; g++){
-            printf("#ROOT rapport de %d = %d", g, test_fin[g]);
+            //printf("#ROOT rapport de %d = %d", g, test_fin[g]);
             if(test_fin[g] != 1)
               test = 1;
           }
