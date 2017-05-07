@@ -59,6 +59,7 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
   /* évalue récursivement les positions accessibles à partir d'ici */
   int flag = 0;
   for (int i = 0; i < n_moves; i++){
+    /*
     if(T->height == 1){
      //printf("n_moves = %d\n", n_moves); 
      //printf("i = %d\n", i);
@@ -70,7 +71,9 @@ void evaluate(tree_t * T, result_t *result, MPI_Status status, int rang)
         // on met à jour le alpha courant
         MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
       }
+
     }
+    */
     tree_t child;
     result_t child_result;
 
@@ -235,6 +238,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     if(T->alpha < child_score){
       T->alpha = child_score;
       // Communication aux autres processus de l'alpha
+      /*
       if(T->depth > 1){
         for(int i=1; i<NP; i++){
           if(i != status.MPI_SOURCE){
@@ -243,6 +247,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           }
         }
       }
+      */
     }
     // Si il reste du job à faire on en envoie au processus
     //    sinon on fait rien 
@@ -365,7 +370,7 @@ int main(int argc, char **argv)
 
     decide(&T, &result, tag, NP, status, mpi_tree_t,mpi_result_t);
     for(i=1; i<NP; i++){
-      //printf("#ROOT envoi finalize %d\n", i);
+      printf("#ROOT envoi finalize %d\n", i);
       MPI_Send(&T, 1, mpi_tree_t, i, TAG_END, MPI_COMM_WORLD);
     }
     fin = my_gettimeofday();  
@@ -402,8 +407,10 @@ int main(int argc, char **argv)
       //printf("#%d En attente\n", rang);
       MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       if(flag==1){
-        if(status.MPI_TAG == TAG_END)
+        if(status.MPI_TAG == TAG_END){
+          printf("#%d reçoit le signal de fin\n", rang);
           break;
+        }
       }
       MPI_Recv(&root_proc, 1, mpi_tree_t, 0, TAG_TREE, MPI_COMM_WORLD, &status);
       /* receive le move */
