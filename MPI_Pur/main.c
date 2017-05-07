@@ -402,7 +402,7 @@ int main(int argc, char **argv)
       MPI_Iprobe(0, TAG_ALPHA, MPI_COMM_WORLD, &flag, &status);
       if(flag==1){
         if(status.MPI_TAG == TAG_ALPHA){
-          MPI_Recv(&T->alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
+          MPI_Recv(root_proc.alpha, 1, MPI_INT, 0, TAG_ALPHA, MPI_COMM_WORLD, &status);
         }
         if(status.MPI_TAG == TAG_END){
           break;
