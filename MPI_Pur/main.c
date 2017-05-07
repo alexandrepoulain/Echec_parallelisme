@@ -388,6 +388,7 @@ int main(int argc, char **argv)
       free_tt();
     MPI_Type_free(&mpi_tree_t);
     MPI_Type_free(&mpi_result_t);
+    printf("#ROOT finalize\n");
     MPI_Finalize();
   }
   /* sinon je suis dans un while tant qu'on me dit pas que c'est fini
@@ -429,6 +430,7 @@ int main(int argc, char **argv)
       MPI_Send(&child_result, 1, mpi_result_t, 0, TAG_RESULT, MPI_COMM_WORLD);
       printf("#%d envoi result\n", rang);
     }
+    printf("#%d finalize\n", rang);
     MPI_Finalize();
   }
   
