@@ -20,6 +20,8 @@ Le but du projet est de paralléliser un programme séquentiel. Ce programme pre
 
 Utilisation
 ------------
+Chaque repertoire correspond à une implementation.
+
     Make
     Make host
     Make exec
