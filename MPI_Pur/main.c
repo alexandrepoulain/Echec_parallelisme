@@ -230,6 +230,9 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
         result->PV[j+1] = child_result.PV[j];
       result->PV[0] = moves[indice[status.MPI_SOURCE]];
     }
+    /* On casse si on a trouvé le meilleur result */
+    if (DEFINITIVE(result->score))
+      break;
     
     /* on s'occupe ici de l'alpha */
     if(T->alpha < child_score){
