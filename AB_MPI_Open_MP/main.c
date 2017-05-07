@@ -356,7 +356,12 @@ int main(int argc, char **argv)
   printf("test\n");
   /* Init MPI */
   int NP, rang, tag = 10;
-  MPI_Init(&argc,&argv);
+ int provided;
+  MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
+   
+  if(provided < MPI_THREAD_MULTIPLE){
+    printf("Error level provided less than required\n");
+  }
   // nombre de processus
   
   MPI_Comm_size(MPI_COMM_WORLD, &NP);
