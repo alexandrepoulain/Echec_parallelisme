@@ -295,7 +295,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
           }
           // on envoie au thread de comm du processus correspondant
           MPI_Send(&root_chain->plateau, 1, mpi_tree_t, i+1, TAG_INIT, MPI_COMM_WORLD);
-          printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem);
+          //printf("#ROOT envoi à #%d de %d moves\n", i+1, nb_elem);
           // Send au processus i du move
           ////printf("#ROOT envoi du move %d à #%d\n",moves[i], i); 
           MPI_Send(&send_moves[0], nb_elem, MPI_INT, i+1, TAG_INIT, MPI_COMM_WORLD);
