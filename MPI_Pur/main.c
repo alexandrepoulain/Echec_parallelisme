@@ -189,6 +189,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
     if(T->alpha < child_score){
       T->alpha = child_score;
       // Communication aux autres processus de l'alpha
+      /*
       if(T->depth > 1){
         for(int i=1; i<NP; i++){
           if(i != status.MPI_SOURCE){
@@ -197,6 +198,7 @@ void evaluate_root(tree_t * T, result_t *result, int tag, int NP, MPI_Status sta
           }
         }
       }
+      */
     }
     }
     else{
