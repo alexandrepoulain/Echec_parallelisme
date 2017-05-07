@@ -259,7 +259,7 @@ void evaluate_root(chained_t* root_chain, int tag, int NP, MPI_Status status, in
       root_chain->fixe = root_chain->n_moves;;
       root_chain->indice = 0;
       root_chain->bien_def=1;
-      //printf("#ROOT reste = %d\n", reste);
+      printf("#ROOT reste = %d\n", reste);
       // Processus 0 peut commencer
       #pragma omp atomic
       go += 1;
