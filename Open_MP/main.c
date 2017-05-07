@@ -58,19 +58,21 @@ void evaluate(tree_t * T, result_t *result)
       evaluate(&child, &child_result);
 
       int child_score = -child_result.score;
-
-      if (child_score > result->score) {
-       result->score = child_score;
-       result->best_move = moves[i];
-       result->pv_length = child_result.pv_length + 1;
-       for(int j = 0; j < child_result.pv_length; j++)
-        result->PV[j+1] = child_result.PV[j];
-      result->PV[0] = moves[i];
-    }
+      #pragma omp critical
+      {
+        if (child_score > result->score) {
+         result->score = child_score;
+         result->best_move = moves[i];
+         result->pv_length = child_result.pv_length + 1;
+         for(int j = 0; j < child_result.pv_length; j++)
+          result->PV[j+1] = child_result.PV[j];
+        result->PV[0] = moves[i];
+        }
+      }
 
     //if (ALPHA_BETA_PRUNING && child_score >= T->beta)
     //  break;    
-
+    #pragma omp critical
     T->alpha = MAX(T->alpha, child_score);
   }
 }
