@@ -16,7 +16,7 @@ clean:
 
 run:
 	export OMP_NUM_THREADS=4
-	export OMP_SCHEDULE="dynamic,1"
+	export OMP_SCHEDULE="dynamic"
 	export OMP_NESTED=FALSE
 	./decide "/5p/4p/4PP/4K///k w" 
 
