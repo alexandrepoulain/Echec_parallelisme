@@ -5,11 +5,9 @@
 #include <assert.h>
 #include <err.h>
 #include <mpi.h>
-
-#include <unistd.h>
+#include <time.h> /* chronometrage */
 #include <math.h>
 #include <sys/time.h>
-#include <time.h> /* chronometrage */
 
 /* 2017-02-23 : version 1.0 */
 
@@ -71,6 +69,18 @@ typedef struct {
   int pv_length;
   int PV[MAX_DEPTH];
 } result_t;
+
+/* Structure pour l'anneau contenant le plateau de jeu ainsi que le tableau de move possible 
+(pour chaque move on a un ponteur vers la structure correspondante)
+C'est une liste chaînée */  
+typedef struct chained {
+  result_t result;
+  tree_t plateau;
+  move_t* moves;
+  int n_moves;
+  struct chained** chain;
+}chained_t;
+
 
 /********************************************
  * Fonctions temps

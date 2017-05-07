@@ -20,10 +20,15 @@ Le but du projet est de paralléliser un programme séquentiel. Ce programme pre
 
 Utilisation
 ------------
+Chaque répertoire correspond à une implementation. Le préfixe AB correspond aux implementations utilisant l'algorithme alpha beta
+
     Make
+    Make host
     Make exec
     Make clean
-    
+
+La commande Make host permet de mettre à jour tout les hostfiles des sous dossiers avec celui situé à la racine.
+
 Attention certaines bibliothèques peuvent être nécessaire, en plus des bibliothèques standards.
 
 Quelques tests

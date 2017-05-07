@@ -1,6 +1,6 @@
 target: decide
 
-CFLAGS=-g -O3 -std=c99
+CFLAGS=-g -O3 -std=c99 -fopenmp
 CC = mpicc
 
 main.o: main.c projet.h
@@ -15,4 +15,4 @@ decide: main.o aux.o
 clean:
 	rm -f *.o decide
 exec:
-	mpirun -n 4 -hostfile hostfile --map-by node ./decide "4k//4K//4P w"  
+	mpirun -n 4 -hostfile hostfile --map-by node ./decide "/ppp//PPP//7k//7K w"   
